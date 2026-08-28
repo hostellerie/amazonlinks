@@ -1,0 +1,119 @@
+.amazonlinks-block {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid currentColor;
+}
+
+.amazonlinks-title {
+    margin-bottom: 0.75rem;
+    font-weight: 700;
+}
+
+.amazonlinks-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+}
+
+.amazonlinks-link,
+.amazonlinks-autotag {
+    display: inline-block;
+    padding: 0.55rem 0.9rem;
+    border: 1px solid currentColor;
+    border-radius: 0.35rem;
+    color: inherit;
+    text-decoration: none;
+}
+
+.amazonlinks-link:hover,
+.amazonlinks-link:focus,
+.amazonlinks-autotag:hover,
+.amazonlinks-autotag:focus {
+    text-decoration: underline;
+}
+
+.amazonlinks-block {
+    --amazonlinks-button-bg: transparent;
+    --amazonlinks-button-text: inherit;
+    --amazonlinks-button-border: currentColor;
+}
+
+.amazonlinks-link {
+    background: var(--amazonlinks-button-bg);
+    color: var(--amazonlinks-button-text);
+    border-color: var(--amazonlinks-button-border);
+}
+
+.amazonlinks-color-blue {
+    --amazonlinks-button-bg: #1f6feb;
+    --amazonlinks-button-text: #ffffff;
+    --amazonlinks-button-border: #1f6feb;
+}
+
+.amazonlinks-color-green {
+    --amazonlinks-button-bg: #2e7d32;
+    --amazonlinks-button-text: #ffffff;
+    --amazonlinks-button-border: #2e7d32;
+}
+
+.amazonlinks-color-orange {
+    --amazonlinks-button-bg: #d97706;
+    --amazonlinks-button-text: #ffffff;
+    --amazonlinks-button-border: #d97706;
+}
+
+.amazonlinks-color-red {
+    --amazonlinks-button-bg: #c62828;
+    --amazonlinks-button-text: #ffffff;
+    --amazonlinks-button-border: #c62828;
+}
+
+.amazonlinks-color-dark {
+    --amazonlinks-button-bg: #2b2b2b;
+    --amazonlinks-button-text: #ffffff;
+    --amazonlinks-button-border: #2b2b2b;
+}
+
+.amazonlinks-color-gray {
+    --amazonlinks-button-bg: #6b7280;
+    --amazonlinks-button-text: #ffffff;
+    --amazonlinks-button-border: #6b7280;
+}
+
+/*
+ * Stronger specificity for themes that override link colors, sometimes with
+ * their own !important declarations. These rules intentionally use !important
+ * only for the visual properties controlled by the AmazonLinks color preset.
+ */
+html body .amazonlinks-block .amazonlinks-link,
+html body .amazonlinks-block .amazonlinks-link:link,
+html body .amazonlinks-block .amazonlinks-link:visited,
+html body .amazonlinks-block .amazonlinks-link:hover,
+html body .amazonlinks-block .amazonlinks-link:focus,
+html body .amazonlinks-block .amazonlinks-link:active {
+    color: var(--amazonlinks-button-text) !important;
+    background-color: var(--amazonlinks-button-bg) !important;
+    border-color: var(--amazonlinks-button-border) !important;
+    text-decoration: none !important;
+}
+
+html body .amazonlinks-block.amazonlinks-color-blue .amazonlinks-link:hover,
+html body .amazonlinks-block.amazonlinks-color-blue .amazonlinks-link:focus,
+html body .amazonlinks-block.amazonlinks-color-blue .amazonlinks-link:active,
+html body .amazonlinks-block.amazonlinks-color-green .amazonlinks-link:hover,
+html body .amazonlinks-block.amazonlinks-color-green .amazonlinks-link:focus,
+html body .amazonlinks-block.amazonlinks-color-green .amazonlinks-link:active,
+html body .amazonlinks-block.amazonlinks-color-orange .amazonlinks-link:hover,
+html body .amazonlinks-block.amazonlinks-color-orange .amazonlinks-link:focus,
+html body .amazonlinks-block.amazonlinks-color-orange .amazonlinks-link:active,
+html body .amazonlinks-block.amazonlinks-color-red .amazonlinks-link:hover,
+html body .amazonlinks-block.amazonlinks-color-red .amazonlinks-link:focus,
+html body .amazonlinks-block.amazonlinks-color-red .amazonlinks-link:active,
+html body .amazonlinks-block.amazonlinks-color-dark .amazonlinks-link:hover,
+html body .amazonlinks-block.amazonlinks-color-dark .amazonlinks-link:focus,
+html body .amazonlinks-block.amazonlinks-color-dark .amazonlinks-link:active,
+html body .amazonlinks-block.amazonlinks-color-gray .amazonlinks-link:hover,
+html body .amazonlinks-block.amazonlinks-color-gray .amazonlinks-link:focus,
+html body .amazonlinks-block.amazonlinks-color-gray .amazonlinks-link:active {
+    filter: brightness(0.90);
+}

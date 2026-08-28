@@ -1,0 +1,7 @@
+<plugin>
+  <pi_name>amazonlinks</pi_name>
+  <pi_display_name>Amazon Links</pi_display_name>
+  <pi_version>1.1.0</pi_version>
+  <pi_gl_version>2.1.1</pi_gl_version>
+  <pi_homepage>https://github.com/Geeklog-Plugins/amazonlinks</pi_homepage>
+</plugin>

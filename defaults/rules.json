@@ -1,0 +1,22 @@
+[
+    {
+        "keyword": "windows",
+        "label": "Windows resources",
+        "type": "search",
+        "target": "windows books",
+        "match": "word",
+        "topic": "",
+        "priority": 10,
+        "enabled": true
+    },
+    {
+        "keyword": "linux",
+        "label": "Linux resources",
+        "type": "search",
+        "target": "linux books",
+        "match": "word",
+        "topic": "",
+        "priority": 10,
+        "enabled": true
+    }
+]
