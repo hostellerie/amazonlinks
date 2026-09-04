@@ -57,13 +57,6 @@ function AMAZONLINKS_loadConfig()
     return array_merge($defaults, $stored);
 }
 
-function AMAZONLINKS_debugLog($message)
-{
-    if (function_exists('COM_errorLog')) {
-        COM_errorLog('[AmazonLinks debug] ' . (string) $message);
-    }
-}
-
 function AMAZONLINKS_isFullStoryDisplay($displayType)
 {
     $displayType = trim((string) $displayType);
@@ -79,13 +72,7 @@ function AMAZONLINKS_isFullStoryDisplay($displayType)
         $script = basename((string) $_SERVER['PHP_SELF']);
     }
 
-    $isFull = ($script === 'article.php');
-    AMAZONLINKS_debugLog(
-        'Display type fallback: script=' . ($script === '' ? '(empty)' : $script)
-        . ', fullStory=' . ($isFull ? 'yes' : 'no')
-    );
-
-    return $isFull;
+    return $script === 'article.php';
 }
 
 function AMAZONLINKS_marketplaces()
@@ -338,62 +325,38 @@ function AMAZONLINKS_buildContextualBlock($content, $storyTopics)
     global $_AMAZONLINKS_CONF;
 
     if (empty($_AMAZONLINKS_CONF['enabled'])) {
-        AMAZONLINKS_debugLog('Contextual block skipped: plugin disabled.');
         return '';
     }
 
     $content = html_entity_decode(strip_tags((string) $content), ENT_QUOTES, 'UTF-8');
     if (trim($content) === '') {
-        AMAZONLINKS_debugLog('Contextual block skipped: analyzed content is empty.');
         return '';
     }
 
     $rules = AMAZONLINKS_loadRules();
-    AMAZONLINKS_debugLog(
-        'Analyzing content length=' . strlen($content)
-        . ', topics=' . (empty($storyTopics) ? '(none)' : implode(',', $storyTopics))
-        . ', rules=' . count($rules)
-    );
-
     if (empty($rules)) {
-        AMAZONLINKS_debugLog('Contextual block skipped: no rules configured.');
         return '';
     }
 
     $found = array();
     $seenUrls = array();
 
-    foreach ($rules as $index => $rule) {
-        $keyword = isset($rule['keyword']) ? (string) $rule['keyword'] : '';
+    foreach ($rules as $rule) {
         if (empty($rule['enabled'])) {
-            AMAZONLINKS_debugLog('Rule #' . $index . ' keyword="' . $keyword . '": disabled.');
             continue;
         }
         if (!AMAZONLINKS_ruleTopicMatches($rule['topic'], $storyTopics)) {
-            AMAZONLINKS_debugLog(
-                'Rule #' . $index . ' keyword="' . $keyword . '": topic mismatch (rule topic="'
-                . (string) $rule['topic'] . '").'
-            );
             continue;
         }
         if (!AMAZONLINKS_ruleMatches($content, $rule['keyword'], $rule['match'])) {
-            AMAZONLINKS_debugLog(
-                'Rule #' . $index . ' keyword="' . $keyword . '": no content match (mode=' . $rule['match'] . ').'
-            );
             continue;
         }
 
         $url = AMAZONLINKS_ruleUrl($rule);
-        if ($url === '') {
-            AMAZONLINKS_debugLog('Rule #' . $index . ' keyword="' . $keyword . '": matched but URL is invalid/empty.');
-            continue;
-        }
-        if (isset($seenUrls[$url])) {
-            AMAZONLINKS_debugLog('Rule #' . $index . ' keyword="' . $keyword . '": matched but duplicate URL.');
+        if ($url === '' || isset($seenUrls[$url])) {
             continue;
         }
 
-        AMAZONLINKS_debugLog('Rule #' . $index . ' keyword="' . $keyword . '": MATCHED.');
         $seenUrls[$url] = true;
         $found[] = array('label' => $rule['label'], 'url' => $url);
     }
@@ -408,8 +371,6 @@ function AMAZONLINKS_buildContextualBlock($content, $storyTopics)
     if (count($found) > $max) {
         $found = array_slice($found, 0, $max);
     }
-
-    AMAZONLINKS_debugLog('Contextual result: ' . count($found) . ' link(s) selected.');
 
     if (empty($found)) {
         return '';
@@ -457,25 +418,8 @@ function plugin_templateSetVars_amazonlinks($templatename, $template)
     }
 
     $mode = AMAZONLINKS_displayMode();
-    $storyId = (string) $template->get_var('story_id');
-    if ($storyId === '') {
-        $storyId = (string) $template->get_var('sid');
-    }
-
-    $displayType = (string) $template->get_var('story_display_type');
-    if ($displayType === '') {
-        $displayType = (string) $template->get_var('display_type');
-    }
-
-    AMAZONLINKS_debugLog(
-        'Template hook=' . $templatename
-        . ', story=' . ($storyId === '' ? '(unknown)' : $storyId)
-        . ', mode=' . $mode
-        . ', displayType=' . ($displayType === '' ? '(empty)' : $displayType)
-    );
 
     if ($mode === 'disabled') {
-        AMAZONLINKS_debugLog('Template hook stopped: display mode disabled.');
         return;
     }
 
@@ -488,75 +432,45 @@ function plugin_templateSetVars_amazonlinks($templatename, $template)
         $intro = (string) $template->get_var('story_introtext');
     }
 
-    $contentSource = 'story_text_no_br';
     $content = trim($visibleText);
     if ($content === '') {
-        $contentSource = 'title+intro+body fallback';
         $content = trim($title . ' ' . $intro . ' ' . $body);
     } elseif ($title !== '') {
         $content = trim($title . ' ' . $content);
     }
 
-    AMAZONLINKS_debugLog(
-        'Content source=' . $contentSource
-        . ', visibleTextLength=' . strlen($visibleText)
-        . ', analyzedLength=' . strlen($content)
-    );
-
     if ($content === '') {
-        AMAZONLINKS_debugLog('Template hook stopped: no analyzable story content.');
         return;
     }
 
-    $storyTopics = AMAZONLINKS_storyTopics($template);
-    $html = AMAZONLINKS_buildContextualBlock($content, $storyTopics);
+    $html = AMAZONLINKS_buildContextualBlock($content, AMAZONLINKS_storyTopics($template));
 
     if ($mode === 'template') {
         if ($html !== '') {
             $template->set_var('amazonlinks', $html);
-            AMAZONLINKS_debugLog('Template mode: {amazonlinks} variable populated.');
-        } else {
-            AMAZONLINKS_debugLog('Template mode: no matching block generated.');
         }
         return;
     }
 
-    if (!AMAZONLINKS_isFullStoryDisplay($displayType)) {
-        AMAZONLINKS_debugLog('Automatic mode stopped: not a full article display.');
+    $displayType = (string) $template->get_var('story_display_type');
+    if ($displayType === '') {
+        $displayType = (string) $template->get_var('display_type');
+    }
+
+    if (!AMAZONLINKS_isFullStoryDisplay($displayType) || $html === '') {
         return;
     }
 
-    $debugStatus = ($html === '')
-        ? 'aucune règle correspondante'
-        : 'bloc généré ci-dessous';
-    $debugMarker = '<div class="amazonlinks-debug-slot" style="margin:1rem 0;padding:.75rem 1rem;'
-        . 'border:2px dashed #b42318;background:#fff4f2;color:#7a271a;font-weight:700;clear:both">'
-        . 'AmazonLinks debug — emplacement du bloc automatique : '
-        . htmlspecialchars($debugStatus, ENT_QUOTES, 'UTF-8')
-        . '</div>';
-
     if ($visibleText !== '') {
-        if (strpos($visibleText, 'class="amazonlinks-debug-slot"') === false
-            && strpos($visibleText, 'class="amazonlinks-block"') === false) {
-            $template->set_var('story_text_no_br', $visibleText . $debugMarker . $html);
-            AMAZONLINKS_debugLog('Automatic mode: debug marker and block appended to story_text_no_br.');
-        } else {
-            AMAZONLINKS_debugLog('Automatic mode: marker/block already present; duplicate prevented.');
+        if (strpos($visibleText, 'class="amazonlinks-block"') === false) {
+            $template->set_var('story_text_no_br', $visibleText . $html);
         }
         return;
     }
 
     $visibleText = (string) $template->get_var('story_introtext');
-    if ($visibleText !== '') {
-        if (strpos($visibleText, 'class="amazonlinks-debug-slot"') === false
-            && strpos($visibleText, 'class="amazonlinks-block"') === false) {
-            $template->set_var('story_introtext', $visibleText . $debugMarker . $html);
-            AMAZONLINKS_debugLog('Automatic mode: debug marker and block appended to story_introtext fallback.');
-        } else {
-            AMAZONLINKS_debugLog('Automatic mode fallback: marker/block already present; duplicate prevented.');
-        }
-    } else {
-        AMAZONLINKS_debugLog('Automatic mode failed: neither story_text_no_br nor story_introtext can receive output.');
+    if ($visibleText !== '' && strpos($visibleText, 'class="amazonlinks-block"') === false) {
+        $template->set_var('story_introtext', $visibleText . $html);
     }
 }
 
