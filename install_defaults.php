@@ -10,7 +10,7 @@ global $_AMAZONLINKS_DEFAULT;
 
 $_AMAZONLINKS_DEFAULT = array(
     'enabled'       => 1,
-    'title'         => 'Recommended resources',
+    'title'         => 'Recommended resources on Amazon',
     'marketplace'   => 'www.amazon.com',
     'affiliate_tag' => '',
     'max_links'     => 5,
