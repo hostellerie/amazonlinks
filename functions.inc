@@ -463,53 +463,22 @@ function AMAZONLINKS_buildContextualBlock($content, $storyTopics)
 }
 
 /**
- * Insert the automatic block into the final story template selected by Geeklog.
- * Geeklog 2.1.1 calls PLG_templateSetVars() a second time with article,
- * featuredarticle or archivearticle immediately before the final parse. At
- * that point templateCode contains the actual story template chosen by
- * showfirstasfeatured. Inserting a private placeholder directly after the
- * content token makes automatic mode independent of which historical Denim
- * template is in use and avoids relying on a stale {amazonlinks} placeholder.
+ * Append the automatic block to the visible story variables used by current
+ * Geeklog themes. The caller decides whether the active Geeklog rendering path
+ * can actually use this direct injection.
  */
-function AMAZONLINKS_injectAutomaticBlock($template, $templateName, $html)
+function AMAZONLINKS_injectVisibleStoryContent($template, $html)
 {
     if ($html === '') {
         return;
     }
 
-    $template->set_var('amazonlinks', '');
-    $template->set_var('amazonlinks_auto', $html);
-
-    if (!isset($template->templateCode)
-        || !is_array($template->templateCode)
-        || !isset($template->templateCode[$templateName])
-    ) {
-        return;
-    }
-
-    $code = (string) $template->templateCode[$templateName];
-    if ($code === '' || strpos($code, '{amazonlinks_auto}') !== false) {
-        return;
-    }
-
-    foreach (array('{story_text_no_br}', '{story_introtext}', '{story_bodyhtml}') as $token) {
-        $pos = strpos($code, $token);
-        if ($pos !== false) {
-            $pos += strlen($token);
-            $template->templateCode[$templateName] = substr($code, 0, $pos)
-                . '{amazonlinks_auto}' . substr($code, $pos);
-            return;
+    foreach (array('story_text_no_br', 'story_introtext') as $var) {
+        $value = (string) $template->get_var($var);
+        if ($value !== '' && strpos($value, 'amazonlinks-block') === false) {
+            $template->set_var($var, $value . $html);
         }
     }
-
-    $closing = strripos($code, '</article>');
-    if ($closing !== false) {
-        $template->templateCode[$templateName] = substr($code, 0, $closing)
-            . '{amazonlinks_auto}' . substr($code, $closing);
-        return;
-    }
-
-    $template->templateCode[$templateName] = $code . '{amazonlinks_auto}';
 }
 
 function plugin_templateSetVars_amazonlinks($templatename, $template)
@@ -585,21 +554,50 @@ function plugin_templateSetVars_amazonlinks($templatename, $template)
         return;
     }
 
-    /*
-     * Automatic placement is performed only on Geeklog's second story hook,
-     * where the exact final template file variable is known. This avoids
-     * depending on whether storytext or featuredstorytext is selected.
-     */
-    if (!in_array($templatename, array('article', 'featuredarticle', 'archivearticle'), true)) {
-        return;
-    }
-
     $displayType = (string) $template->get_var('story_display_type');
+
     if (!AMAZONLINKS_isFullStoryDisplay($displayType) || $html === '') {
         return;
     }
 
-    AMAZONLINKS_injectAutomaticBlock($template, $templatename, $html);
+    /*
+     * Geeklog versions exposing story_display_type have a deterministic full
+     * article signal. Direct injection is preferred and the old 1.0 template
+     * placeholder is cleared to prevent duplicates in historical themes.
+     */
+    if (trim($displayType) !== '') {
+        AMAZONLINKS_injectVisibleStoryContent($template, $html);
+        $template->set_var('amazonlinks', '');
+        return;
+    }
+
+    /*
+     * Geeklog 2.1.1 does not expose story_display_type. Its historical normal
+     * and featured story paths behave differently with old Denim-derived
+     * themes. Tests on real 2.1.1 sites show that featuredstorytext renders a
+     * direct story-content injection, while storytext reliably renders the
+     * legacy {amazonlinks} placeholder instead. Handle those two paths
+     * explicitly and ignore the later article/body hooks to avoid duplicates.
+     */
+    if (in_array($templatename, array(
+        'article',
+        'featuredarticle',
+        'archivearticle',
+        'storybodytext',
+        'featuredstorybodytext',
+        'archivestorybodytext'
+    ), true)) {
+        return;
+    }
+
+    if ($templatename === 'featuredstorytext') {
+        AMAZONLINKS_injectVisibleStoryContent($template, $html);
+        $template->set_var('amazonlinks', '');
+        return;
+    }
+
+    /* Normal and archive 2.1.1 paths: use the established 1.0 placeholder. */
+    $template->set_var('amazonlinks', $html);
 }
 
 function plugin_getheadercode_amazonlinks()
