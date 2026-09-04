@@ -31,6 +31,9 @@
 - Automatic blocks are appended only on full article views, not topic/index summaries.
 - Automatic matching now prefers the final visible `story_text_no_br` content, with a fallback to title/introduction/body variables. This improves compatibility with Eclipse and other themes that render the final article body through `story_text_no_br`.
 - Contextual matching checks the article title together with the visible article text when available.
+- Added a Geeklog 2.1.1 fallback that detects full article pages via `article.php` when `story_display_type` is unavailable; Geeklog 2.2.2 continues to use the native `n` / `y` display type.
+- Contextual blocks now use an explicit localized default title such as `Ressources recommandées sur Amazon` and display an affiliate disclosure below the links.
+- Legacy generic default titles are upgraded at render time without overwriting administrator-defined custom titles.
 - Prevented duplicate automatic/template output by making the modes mutually exclusive.
 - Simplified configuration initialization so it only creates settings on first install.
 - Moved missing-setting migration logic into `plugin_upgrade_amazonlinks()`.
