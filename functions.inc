@@ -27,7 +27,7 @@ function AMAZONLINKS_loadConfig()
 {
     $defaults = array(
         'enabled'       => 1,
-        'title'         => 'Recommended resources',
+        'title'         => 'Recommended resources on Amazon',
         'marketplace'   => 'www.amazon.com',
         'affiliate_tag' => '',
         'max_links'     => 5,
@@ -322,7 +322,7 @@ function AMAZONLINKS_buttonColor()
 
 function AMAZONLINKS_buildContextualBlock($content, $storyTopics)
 {
-    global $_AMAZONLINKS_CONF;
+    global $_AMAZONLINKS_CONF, $LANG_AMAZONLINKS;
 
     if (empty($_AMAZONLINKS_CONF['enabled'])) {
         return '';
@@ -378,7 +378,26 @@ function AMAZONLINKS_buildContextualBlock($content, $storyTopics)
 
     $title = isset($_AMAZONLINKS_CONF['title'])
         ? trim((string) $_AMAZONLINKS_CONF['title'])
-        : 'Recommended resources';
+        : '';
+
+    $legacyTitles = array(
+        '',
+        'Recommended resources',
+        'Recommended Resources',
+        'Recommended resources on Amazon',
+        'Ressources recommandées',
+        'Ressources Recommandées'
+    );
+
+    if (in_array($title, $legacyTitles, true)) {
+        $title = isset($LANG_AMAZONLINKS['default_block_title'])
+            ? $LANG_AMAZONLINKS['default_block_title']
+            : 'Recommended resources on Amazon';
+    }
+
+    $disclosure = isset($LANG_AMAZONLINKS['affiliate_disclosure'])
+        ? trim((string) $LANG_AMAZONLINKS['affiliate_disclosure'])
+        : '';
 
     $colorClass = ' amazonlinks-color-' . AMAZONLINKS_buttonColor();
 
@@ -397,7 +416,15 @@ function AMAZONLINKS_buildContextualBlock($content, $storyTopics)
         $html .= AMAZONLINKS_renderLink($item['label'], $item['url'], 'amazonlinks-link');
     }
 
-    $html .= '</div></aside>';
+    $html .= '</div>';
+
+    if ($disclosure !== '') {
+        $html .= '<div class="amazonlinks-disclosure">'
+            . htmlspecialchars($disclosure, ENT_QUOTES, 'UTF-8')
+            . '</div>';
+    }
+
+    $html .= '</aside>';
 
     return $html;
 }
