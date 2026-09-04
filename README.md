@@ -118,9 +118,17 @@ Search:
 
     [amazonlinks:libreoffice]
 
+Multi-word search:
+
+    [amazonlinks:rocket stove]
+
 Search with a custom label:
 
     [amazonlinks:libreoffice|Voir les livres sur LibreOffice]
+
+Multi-word search and label:
+
+    [amazonlinks:rocket stove|Voir les livres sur les rocket stoves]
 
 Product ASIN:
 
@@ -130,9 +138,11 @@ Product ASIN with a custom label:
 
     [amazonlinks:asin:B0XXXXXXXX|Voir ce produit sur Amazon]
 
-The `|` separator is parsed by AmazonLinks itself, so multi-word search terms and labels are unambiguous. If Geeklog also supplies a second autotag parameter, AmazonLinks continues to accept it for compatibility, but an inline label after `|` takes precedence.
+AmazonLinks reads the original autotag text before Geeklog's normal space-based parameter splitting. The `|` character therefore cleanly separates the Amazon query or ASIN from the optional label, including when either side contains spaces.
 
 The autotag name is deliberately `amazonlinks` rather than `amazon` to avoid collisions with existing or legacy manual Amazon autotags on Geeklog sites.
+
+By default, autotags use the plugin CSS and appear with the AmazonLinks button styling. Set **Apply button styling to autotags?** to **No** in Geeklog Configuration to output a normal unclassed link instead. This setting affects autotags only; it does not disable the CSS used by automatic or template contextual blocks. The existing **Load the plugin stylesheet?** setting still controls whether the plugin stylesheet itself is loaded.
 
 ## Affiliate links
 
@@ -165,7 +175,6 @@ AmazonLinks 1.1:
 ## License
 
 GPL v2 or later.
-
 
 ## Configuration bootstrap safety
 
