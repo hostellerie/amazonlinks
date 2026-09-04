@@ -57,6 +57,35 @@ function AMAZONLINKS_loadConfig()
     return array_merge($defaults, $stored);
 }
 
+/**
+ * AmazonLinks changes the rendered article HTML, so cached article instances
+ * created before an upgrade or configuration/rule change must be rebuilt.
+ * Geeklog's CACHE_remove_instance() accepts a prefix and removes every matching
+ * instance, making article__ safe for all cached article variants.
+ */
+function AMAZONLINKS_clearArticleCache()
+{
+    if (function_exists('CACHE_remove_instance')) {
+        CACHE_remove_instance('article__');
+    }
+}
+
+/**
+ * Keep cached articles synchronized with the native Geeklog configuration.
+ * This hook is available in Geeklog 2.1.1 and later.
+ */
+function plugin_configchange_amazonlinks($group, $changes = array())
+{
+    global $_AMAZONLINKS_CONF;
+
+    if ($group !== 'amazonlinks') {
+        return;
+    }
+
+    $_AMAZONLINKS_CONF = AMAZONLINKS_loadConfig();
+    AMAZONLINKS_clearArticleCache();
+}
+
 function AMAZONLINKS_isFullStoryDisplay($displayType)
 {
     $displayType = trim((string) $displayType);
@@ -632,6 +661,8 @@ function plugin_upgrade_amazonlinks()
         . "SET pi_version = '1.1.0', pi_gl_version = '2.1.1' "
         . "WHERE pi_name = 'amazonlinks'"
     );
+
+    AMAZONLINKS_clearArticleCache();
 
     return true;
 }
