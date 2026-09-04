@@ -14,17 +14,63 @@ if (!SEC_hasRights('amazonlinks.admin')) {
 
 global $_CONF, $LANG_AMAZONLINKS;
 
-$message = '';
-$rules = AMAZONLINKS_loadRules();
 $legacyRuntime = function_exists('AMAZONLINKS_isLegacyRuntime') && AMAZONLINKS_isLegacyRuntime();
 
+/*
+ * AmazonLinks 1.0 had no web administration or Geeklog Configuration page.
+ * When 1.1 files are shared with a site that is still persisted as 1.0,
+ * preserve that historical situation: keep the runtime compatibility path,
+ * but do not expose any 1.1 editor or configuration controls before the
+ * site's explicit plugin upgrade has completed.
+ */
+if ($legacyRuntime) {
+    $legacyFile = AMAZONLINKS_legacyConfigFile();
+    $installedVersion = function_exists('AMAZONLINKS_installedVersion')
+        ? AMAZONLINKS_installedVersion()
+        : '1.0.0';
+
+    $content = COM_startBlock(
+        $LANG_AMAZONLINKS['admin_title'],
+        '',
+        COM_getBlockTemplate('_admin_block', 'header')
+    );
+
+    $content .= '<div class="alert">'
+        . htmlspecialchars($LANG_AMAZONLINKS['legacy_warning'], ENT_QUOTES, 'UTF-8');
+
+    if ($installedVersion !== '') {
+        $content .= '<br><strong>'
+            . htmlspecialchars($LANG_AMAZONLINKS['installed_version'], ENT_QUOTES, 'UTF-8')
+            . ':</strong> '
+            . htmlspecialchars($installedVersion, ENT_QUOTES, 'UTF-8');
+    }
+
+    if ($legacyFile !== '') {
+        $content .= '<br><strong>'
+            . htmlspecialchars($LANG_AMAZONLINKS['legacy_file'], ENT_QUOTES, 'UTF-8')
+            . ':</strong> <code>'
+            . htmlspecialchars($legacyFile, ENT_QUOTES, 'UTF-8')
+            . '</code>';
+    }
+
+    $content .= '</div>';
+    $content .= '<p>'
+        . htmlspecialchars($LANG_AMAZONLINKS['legacy_admin_unavailable'], ENT_QUOTES, 'UTF-8')
+        . '</p>';
+
+    $content .= COM_endBlock(COM_getBlockTemplate('_admin_block', 'footer'));
+
+    COM_output(COM_createHTMLDocument($content, array(
+        'pagetitle' => $LANG_AMAZONLINKS['admin_title']
+    )));
+    exit;
+}
+
+$message = '';
+$rules = AMAZONLINKS_loadRules();
+
 if (isset($_POST['save_rules'])) {
-    if ($legacyRuntime) {
-        $message = COM_showMessageText(
-            $LANG_AMAZONLINKS['legacy_warning'],
-            $LANG_AMAZONLINKS['admin_title']
-        );
-    } elseif (!SEC_checkToken()) {
+    if (!SEC_checkToken()) {
         $message = COM_showMessageText(
             $LANG_AMAZONLINKS['invalid_token'],
             $LANG_AMAZONLINKS['admin_title']
@@ -33,7 +79,6 @@ if (isset($_POST['save_rules'])) {
         $posted = isset($_POST['rules']) && is_array($_POST['rules'])
             ? $_POST['rules']
             : array();
-
         $candidateRules = array();
 
         foreach ($posted as $row) {
@@ -69,25 +114,22 @@ if (isset($_POST['save_rules'])) {
     }
 }
 
-if (!$legacyRuntime) {
-    for ($i = 0; $i < 5; $i++) {
-        $rules[] = array(
-            'keyword' => '',
-            'label' => '',
-            'type' => 'search',
-            'target' => '',
-            'match' => 'phrase',
-            'topic' => '',
-            'priority' => 0,
-            'enabled' => true
-        );
-    }
+for ($i = 0; $i < 5; $i++) {
+    $rules[] = array(
+        'keyword' => '',
+        'label' => '',
+        'type' => 'search',
+        'target' => '',
+        'match' => 'phrase',
+        'topic' => '',
+        'priority' => 0,
+        'enabled' => true
+    );
 }
 
 $token = SEC_createToken();
 $configUrl = $_CONF['site_admin_url'] . '/configuration.php';
 $dataDir = AMAZONLINKS_dataDir();
-$legacyFile = AMAZONLINKS_legacyConfigFile();
 
 $content = COM_startBlock(
     $LANG_AMAZONLINKS['admin_title'],
@@ -109,36 +151,23 @@ $content .= '<style>'
     . '.amazonlinks-rules th:nth-child(6),.amazonlinks-rules td:nth-child(6){width:12%}'
     . '.amazonlinks-rules th:nth-child(7),.amazonlinks-rules td:nth-child(7){width:10%}'
     . '.amazonlinks-rules th:nth-child(8),.amazonlinks-rules td:nth-child(8){width:10%}'
-    . '.amazonlinks-rules fieldset{border:0;margin:0;padding:0;min-width:0}'
     . '@media(max-width:900px){.amazonlinks-rules{min-width:760px;table-layout:auto}}'
     . '</style>';
+
 $content .= '<p>' . htmlspecialchars($LANG_AMAZONLINKS['admin_intro'], ENT_QUOTES, 'UTF-8') . '</p>';
-
-if ($legacyRuntime) {
-    $content .= '<div class="alert">'
-        . htmlspecialchars($LANG_AMAZONLINKS['legacy_warning'], ENT_QUOTES, 'UTF-8')
-        . '<br><code>' . htmlspecialchars($legacyFile, ENT_QUOTES, 'UTF-8') . '</code></div>';
-}
-
 $content .= '<p><strong>' . htmlspecialchars($LANG_AMAZONLINKS['data_directory'], ENT_QUOTES, 'UTF-8')
     . ':</strong> <code>' . htmlspecialchars($dataDir, ENT_QUOTES, 'UTF-8') . '</code></p>';
 
-if (!$legacyRuntime) {
-    $content .= '<form method="post" action="'
-        . htmlspecialchars($configUrl, ENT_QUOTES, 'UTF-8') . '">'
-        . '<input type="hidden" name="conf_group" value="amazonlinks">'
-        . '<button type="submit">'
-        . htmlspecialchars($LANG_AMAZONLINKS['open_configuration'], ENT_QUOTES, 'UTF-8')
-        . '</button></form>';
-}
+$content .= '<form method="post" action="'
+    . htmlspecialchars($configUrl, ENT_QUOTES, 'UTF-8') . '">'
+    . '<input type="hidden" name="conf_group" value="amazonlinks">'
+    . '<button type="submit">'
+    . htmlspecialchars($LANG_AMAZONLINKS['open_configuration'], ENT_QUOTES, 'UTF-8')
+    . '</button></form>';
 
 $content .= '<h2>' . htmlspecialchars($LANG_AMAZONLINKS['rules_title'], ENT_QUOTES, 'UTF-8') . '</h2>';
 $content .= '<p>' . htmlspecialchars($LANG_AMAZONLINKS['rules_help'], ENT_QUOTES, 'UTF-8') . '</p>';
-
 $content .= '<form method="post" action="">';
-if ($legacyRuntime) {
-    $content .= '<fieldset disabled>';
-}
 $content .= '<div class="amazonlinks-rules-wrap"><table class="admin-list amazonlinks-rules">';
 $content .= '<thead><tr>'
     . '<th>' . htmlspecialchars($LANG_AMAZONLINKS['enabled'], ENT_QUOTES, 'UTF-8') . '</th>'
@@ -182,10 +211,8 @@ foreach ($rules as $index => $rule) {
 
     $content .= '<td><input type="text" name="rules[' . $index . '][topic]" value="'
         . htmlspecialchars($rule['topic'], ENT_QUOTES, 'UTF-8') . '" placeholder="all"></td>';
-
     $content .= '<td><input type="number" name="rules[' . $index . '][priority]" value="'
         . (int) $rule['priority'] . '" min="-1000" max="1000"></td>';
-
     $content .= '</tr>';
 }
 
@@ -194,15 +221,10 @@ $content .= '<input type="hidden" name="' . CSRF_TOKEN . '" value="'
     . htmlspecialchars($token, ENT_QUOTES, 'UTF-8') . '">';
 $content .= '<p><button type="submit" name="save_rules" value="1">'
     . htmlspecialchars($LANG_AMAZONLINKS['save_rules'], ENT_QUOTES, 'UTF-8')
-    . '</button></p>';
-if ($legacyRuntime) {
-    $content .= '</fieldset>';
-}
-$content .= '</form>';
+    . '</button></p></form>';
 
 $content .= '<h2>' . htmlspecialchars($LANG_AMAZONLINKS['template_title'], ENT_QUOTES, 'UTF-8') . '</h2>';
 $content .= '<p>' . $LANG_AMAZONLINKS['template_help'] . '</p>';
-
 $content .= '<h2>' . htmlspecialchars($LANG_AMAZONLINKS['autotag_title'], ENT_QUOTES, 'UTF-8') . '</h2>';
 $content .= '<p>' . htmlspecialchars($LANG_AMAZONLINKS['autotag_description'], ENT_QUOTES, 'UTF-8') . '</p>';
 $content .= '<p><code>[amazonlinks:libreoffice]</code><br>'
@@ -216,36 +238,24 @@ $content .= '<summary style="cursor:pointer;font-weight:700">'
     . htmlspecialchars($LANG_AMAZONLINKS['documentation_title'], ENT_QUOTES, 'UTF-8')
     . '</summary>';
 $content .= '<div style="margin-top:1em">';
-
 $content .= '<h3>' . htmlspecialchars($LANG_AMAZONLINKS['documentation_quickstart_title'], ENT_QUOTES, 'UTF-8') . '</h3>';
 $content .= '<p>' . htmlspecialchars($LANG_AMAZONLINKS['documentation_quickstart'], ENT_QUOTES, 'UTF-8') . '</p>';
-
 $content .= '<h3>' . htmlspecialchars($LANG_AMAZONLINKS['documentation_display_title'], ENT_QUOTES, 'UTF-8') . '</h3>';
 $content .= '<ul>'
     . '<li>' . htmlspecialchars($LANG_AMAZONLINKS['documentation_display_auto'], ENT_QUOTES, 'UTF-8') . '</li>'
     . '<li>' . htmlspecialchars($LANG_AMAZONLINKS['documentation_display_template'], ENT_QUOTES, 'UTF-8') . '</li>'
     . '<li>' . htmlspecialchars($LANG_AMAZONLINKS['documentation_display_disabled'], ENT_QUOTES, 'UTF-8') . '</li>'
     . '</ul>';
-
 $content .= '<h3>' . htmlspecialchars($LANG_AMAZONLINKS['documentation_rules_title'], ENT_QUOTES, 'UTF-8') . '</h3>';
 $content .= '<p>' . htmlspecialchars($LANG_AMAZONLINKS['documentation_rules'], ENT_QUOTES, 'UTF-8') . '</p>';
-
 $content .= '<h3>' . htmlspecialchars($LANG_AMAZONLINKS['documentation_color_title'], ENT_QUOTES, 'UTF-8') . '</h3>';
 $content .= '<p>' . htmlspecialchars($LANG_AMAZONLINKS['documentation_color'], ENT_QUOTES, 'UTF-8') . '</p>';
-
 $content .= '<h3>' . htmlspecialchars($LANG_AMAZONLINKS['documentation_tag_title'], ENT_QUOTES, 'UTF-8') . '</h3>';
 $content .= '<p>' . htmlspecialchars($LANG_AMAZONLINKS['documentation_tag'], ENT_QUOTES, 'UTF-8') . '</p>';
-
 $content .= '<h3>' . htmlspecialchars($LANG_AMAZONLINKS['documentation_autotags_title'], ENT_QUOTES, 'UTF-8') . '</h3>';
 $content .= '<p>' . htmlspecialchars($LANG_AMAZONLINKS['autotag_description'], ENT_QUOTES, 'UTF-8') . '</p>';
-$content .= '<p><code>[amazonlinks:libreoffice]</code><br>'
-    . '<code>[amazonlinks:libreoffice|Voir les livres sur LibreOffice]</code><br>'
-    . '<code>[amazonlinks:asin:B01FIX87WG]</code><br>'
-    . '<code>[amazonlinks:asin:B01FIX87WG|Voir ce produit sur Amazon]</code></p>';
-
 $content .= '<h3>' . htmlspecialchars($LANG_AMAZONLINKS['documentation_storage_title'], ENT_QUOTES, 'UTF-8') . '</h3>';
 $content .= '<p>' . htmlspecialchars($LANG_AMAZONLINKS['documentation_storage'], ENT_QUOTES, 'UTF-8') . '</p>';
-
 $content .= '</div></details>';
 
 $content .= COM_endBlock(COM_getBlockTemplate('_admin_block', 'footer'));
