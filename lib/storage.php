@@ -33,6 +33,174 @@ function AMAZONLINKS_legacyConfigFile()
         : '';
 }
 
+function AMAZONLINKS_installedVersion()
+{
+    global $_TABLES;
+
+    if (empty($_TABLES['plugins']) || !function_exists('DB_getItem')) {
+        return '';
+    }
+
+    $version = DB_getItem($_TABLES['plugins'], 'pi_version', "pi_name = 'amazonlinks'");
+    return is_string($version) ? trim($version) : '';
+}
+
+function AMAZONLINKS_hasCurrentConfig()
+{
+    if (!class_exists('config')) {
+        return false;
+    }
+
+    $c = config::get_instance();
+    if (!method_exists($c, 'group_exists')) {
+        return false;
+    }
+
+    return $c->group_exists('amazonlinks');
+}
+
+function AMAZONLINKS_isLegacyRuntime()
+{
+    $legacyFile = AMAZONLINKS_legacyConfigFile();
+    if ($legacyFile === '' || !file_exists($legacyFile)) {
+        return false;
+    }
+
+    $version = AMAZONLINKS_installedVersion();
+    if ($version !== '') {
+        return version_compare($version, '1.1.0', '<');
+    }
+
+    /* Fallback for unusual bootstrap contexts where the plugin row is not readable. */
+    return !AMAZONLINKS_hasCurrentConfig();
+}
+
+function AMAZONLINKS_legacyState()
+{
+    static $state = null;
+
+    if ($state !== null) {
+        return $state;
+    }
+
+    $state = array('config' => array(), 'rules' => array());
+
+    if (!AMAZONLINKS_isLegacyRuntime()) {
+        return $state;
+    }
+
+    $legacyFile = AMAZONLINKS_legacyConfigFile();
+    $AMAZONLINKS_CONF = array();
+    include $legacyFile;
+
+    if (!is_array($AMAZONLINKS_CONF)) {
+        return $state;
+    }
+
+    $title = isset($AMAZONLINKS_CONF['title'])
+        ? trim((string) $AMAZONLINKS_CONF['title'])
+        : 'Recommended Resources';
+    $tag = isset($AMAZONLINKS_CONF['tag'])
+        ? trim((string) $AMAZONLINKS_CONF['tag'])
+        : '';
+    $maxLinks = isset($AMAZONLINKS_CONF['max_links'])
+        ? (int) $AMAZONLINKS_CONF['max_links']
+        : 5;
+
+    if ($maxLinks < 1) {
+        $maxLinks = 1;
+    } elseif ($maxLinks > 20) {
+        $maxLinks = 20;
+    }
+
+    $keywords = isset($AMAZONLINKS_CONF['keywords']) && is_array($AMAZONLINKS_CONF['keywords'])
+        ? $AMAZONLINKS_CONF['keywords']
+        : array();
+
+    $rules = array();
+    $priority = count($keywords);
+    $marketplace = 'www.amazon.com';
+    $marketplaceDetected = false;
+    $allowedMarketplaces = array(
+        'www.amazon.com',
+        'www.amazon.fr',
+        'www.amazon.de',
+        'www.amazon.it',
+        'www.amazon.es',
+        'www.amazon.co.uk',
+        'www.amazon.ca',
+        'www.amazon.com.au',
+        'www.amazon.co.jp',
+        'www.amazon.in'
+    );
+
+    foreach ($keywords as $keyword => $data) {
+        $keyword = trim((string) $keyword);
+        if ($keyword === '') {
+            continue;
+        }
+
+        $label = $keyword;
+        $url = '';
+
+        if (is_array($data)) {
+            if (isset($data['label']) && trim((string) $data['label']) !== '') {
+                $label = trim((string) $data['label']);
+            }
+            if (isset($data['url'])) {
+                $url = trim((string) $data['url']);
+            }
+        } else {
+            $url = trim((string) $data);
+        }
+
+        if (!AMAZONLINKS_isSafeHttpUrl($url)) {
+            continue;
+        }
+
+        if (!$marketplaceDetected) {
+            $parts = @parse_url($url);
+            $host = is_array($parts) && !empty($parts['host'])
+                ? strtolower((string) $parts['host'])
+                : '';
+            if (in_array($host, $allowedMarketplaces, true)) {
+                $marketplace = $host;
+                $marketplaceDetected = true;
+            }
+        }
+
+        $rules[] = array(
+            'keyword'  => $keyword,
+            'label'    => $label,
+            'type'     => 'url',
+            'target'   => $url,
+            'match'    => 'substring',
+            'topic'    => '',
+            'priority' => $priority,
+            'enabled'  => true
+        );
+
+        $priority--;
+    }
+
+    $state['config'] = array(
+        'enabled'        => 1,
+        'title'          => $title,
+        'marketplace'    => $marketplace,
+        'affiliate_tag'  => $tag,
+        'max_links'      => $maxLinks,
+        'display_mode'   => 'template',
+        'button_color'   => 'blue',
+        'new_window'     => 1,
+        'load_css'       => 1,
+        'autotag_css'    => 1,
+        'legacy_runtime' => 1
+    );
+    $state['rules'] = AMAZONLINKS_normalizeRules($rules);
+
+    return $state;
+}
+
 function AMAZONLINKS_ensureDataDir()
 {
     $dir = AMAZONLINKS_dataDir();
@@ -90,6 +258,12 @@ function AMAZONLINKS_loadRules()
     $file = AMAZONLINKS_rulesFile();
 
     if (!file_exists($file)) {
+        if (AMAZONLINKS_isLegacyRuntime()) {
+            $legacy = AMAZONLINKS_legacyState();
+            return isset($legacy['rules']) && is_array($legacy['rules'])
+                ? $legacy['rules']
+                : array();
+        }
         return array();
     }
 
@@ -109,6 +283,14 @@ function AMAZONLINKS_loadRules()
 
 function AMAZONLINKS_saveRules($rules)
 {
+    /*
+     * Shared-files safety: a site still persisted as 1.0 must stay read-only
+     * until its explicit upgrade creates the 1.1 configuration group.
+     */
+    if (AMAZONLINKS_isLegacyRuntime() && !AMAZONLINKS_hasCurrentConfig()) {
+        return false;
+    }
+
     $rules = AMAZONLINKS_normalizeRules($rules);
     $json = json_encode($rules, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 
@@ -210,4 +392,17 @@ function AMAZONLINKS_isSafeHttpUrl($url)
 
     $scheme = strtolower($parts['scheme']);
     return $scheme === 'http' || $scheme === 'https';
+}
+
+/*
+ * When 1.1 files are shared with a site still persisted as 1.0, preload the
+ * legacy configuration read-only before functions.inc falls back to 1.1 defaults.
+ */
+if ((!isset($GLOBALS['_AMAZONLINKS_CONF']) || !is_array($GLOBALS['_AMAZONLINKS_CONF']))
+    && AMAZONLINKS_isLegacyRuntime()
+) {
+    $amazonlinksLegacyState = AMAZONLINKS_legacyState();
+    if (!empty($amazonlinksLegacyState['config'])) {
+        $GLOBALS['_AMAZONLINKS_CONF'] = $amazonlinksLegacyState['config'];
+    }
 }
