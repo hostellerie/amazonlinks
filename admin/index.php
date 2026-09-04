@@ -88,6 +88,21 @@ $content = COM_startBlock(
 );
 
 $content .= $message;
+$content .= '<style>'
+    . '.amazonlinks-rules-wrap{width:100%;max-width:100%;overflow-x:auto}'
+    . '.amazonlinks-rules{width:100%;max-width:100%;table-layout:fixed;border-collapse:collapse}'
+    . '.amazonlinks-rules th,.amazonlinks-rules td{vertical-align:top;overflow-wrap:anywhere;padding:.35rem}'
+    . '.amazonlinks-rules input[type=text],.amazonlinks-rules input[type=number],.amazonlinks-rules select{width:100%;max-width:100%;min-width:0;box-sizing:border-box}'
+    . '.amazonlinks-rules th:nth-child(1),.amazonlinks-rules td:nth-child(1){width:5%}'
+    . '.amazonlinks-rules th:nth-child(2),.amazonlinks-rules td:nth-child(2){width:14%}'
+    . '.amazonlinks-rules th:nth-child(3),.amazonlinks-rules td:nth-child(3){width:14%}'
+    . '.amazonlinks-rules th:nth-child(4),.amazonlinks-rules td:nth-child(4){width:11%}'
+    . '.amazonlinks-rules th:nth-child(5),.amazonlinks-rules td:nth-child(5){width:24%}'
+    . '.amazonlinks-rules th:nth-child(6),.amazonlinks-rules td:nth-child(6){width:12%}'
+    . '.amazonlinks-rules th:nth-child(7),.amazonlinks-rules td:nth-child(7){width:10%}'
+    . '.amazonlinks-rules th:nth-child(8),.amazonlinks-rules td:nth-child(8){width:10%}'
+    . '@media(max-width:900px){.amazonlinks-rules{min-width:760px;table-layout:auto}}'
+    . '</style>';
 $content .= '<p>' . htmlspecialchars($LANG_AMAZONLINKS['admin_intro'], ENT_QUOTES, 'UTF-8') . '</p>';
 
 if ($legacyFile !== '' && file_exists($legacyFile)) {
@@ -110,7 +125,7 @@ $content .= '<h2>' . htmlspecialchars($LANG_AMAZONLINKS['rules_title'], ENT_QUOT
 $content .= '<p>' . htmlspecialchars($LANG_AMAZONLINKS['rules_help'], ENT_QUOTES, 'UTF-8') . '</p>';
 
 $content .= '<form method="post" action="">';
-$content .= '<div style="overflow-x:auto"><table class="admin-list" style="width:100%;border-collapse:collapse">';
+$content .= '<div class="amazonlinks-rules-wrap"><table class="admin-list amazonlinks-rules">';
 $content .= '<thead><tr>'
     . '<th>' . htmlspecialchars($LANG_AMAZONLINKS['enabled'], ENT_QUOTES, 'UTF-8') . '</th>'
     . '<th>' . htmlspecialchars($LANG_AMAZONLINKS['keyword'], ENT_QUOTES, 'UTF-8') . '</th>'
@@ -129,7 +144,7 @@ foreach ($rules as $index => $rule) {
 
     foreach (array('keyword', 'label') as $field) {
         $content .= '<td><input type="text" name="rules[' . $index . '][' . $field . ']" value="'
-            . htmlspecialchars($rule[$field], ENT_QUOTES, 'UTF-8') . '" style="min-width:10em"></td>';
+            . htmlspecialchars($rule[$field], ENT_QUOTES, 'UTF-8') . '"></td>';
     }
 
     $content .= '<td><select name="rules[' . $index . '][type]">'
@@ -140,7 +155,7 @@ foreach ($rules as $index => $rule) {
         . '</select></td>';
 
     $content .= '<td><input type="text" name="rules[' . $index . '][target]" value="'
-        . htmlspecialchars($rule['target'], ENT_QUOTES, 'UTF-8') . '" style="min-width:18em"></td>';
+        . htmlspecialchars($rule['target'], ENT_QUOTES, 'UTF-8') . '"></td>';
 
     $content .= '<td><select name="rules[' . $index . '][match]">';
     foreach (array('word', 'phrase', 'substring') as $mode) {
@@ -152,10 +167,10 @@ foreach ($rules as $index => $rule) {
     $content .= '</select></td>';
 
     $content .= '<td><input type="text" name="rules[' . $index . '][topic]" value="'
-        . htmlspecialchars($rule['topic'], ENT_QUOTES, 'UTF-8') . '" placeholder="all" style="min-width:7em"></td>';
+        . htmlspecialchars($rule['topic'], ENT_QUOTES, 'UTF-8') . '" placeholder="all"></td>';
 
     $content .= '<td><input type="number" name="rules[' . $index . '][priority]" value="'
-        . (int) $rule['priority'] . '" min="-1000" max="1000" style="width:6em"></td>';
+        . (int) $rule['priority'] . '" min="-1000" max="1000"></td>';
 
     $content .= '</tr>';
 }
