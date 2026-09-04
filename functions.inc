@@ -472,7 +472,10 @@ function plugin_templateSetVars_amazonlinks($templatename, $template)
         'archivestorytext',
         'storybodytext',
         'featuredstorybodytext',
-        'archivestorybodytext'
+        'archivestorybodytext',
+        'article',
+        'featuredarticle',
+        'archivearticle'
     );
 
     if (!in_array($templatename, $storyTemplates, true)) {
@@ -532,24 +535,27 @@ function plugin_templateSetVars_amazonlinks($templatename, $template)
         return;
     }
 
+    /*
+     * Geeklog 2.1.1 does not expose story_display_type. In that case the
+     * article.php request is the authoritative full-story signal. Do not fall
+     * back to a generic display_type template variable because themes or other
+     * plugins may use that name for unrelated purposes.
+     */
     $displayType = (string) $template->get_var('story_display_type');
-    if ($displayType === '') {
-        $displayType = (string) $template->get_var('display_type');
-    }
 
     if (!AMAZONLINKS_isFullStoryDisplay($displayType) || $html === '') {
         return;
     }
 
     if ($visibleText !== '') {
-        if (strpos($visibleText, 'class="amazonlinks-block"') === false) {
+        if (strpos($visibleText, 'amazonlinks-block') === false) {
             $template->set_var('story_text_no_br', $visibleText . $html);
         }
         return;
     }
 
     $visibleText = (string) $template->get_var('story_introtext');
-    if ($visibleText !== '' && strpos($visibleText, 'class="amazonlinks-block"') === false) {
+    if ($visibleText !== '' && strpos($visibleText, 'amazonlinks-block') === false) {
         $template->set_var('story_introtext', $visibleText . $html);
     }
 }
