@@ -31,7 +31,7 @@ $LANG_AMAZONLINKS = array(
     'template_title' => 'Theme integration',
     'template_help' => 'Automatic mode requires no theme change. Template mode lets you add <code>{amazonlinks}</code> to the desired story templates, normally <code>article/storytext.thtml</code> and <code>article/featuredstorytext.thtml</code>.',
     'autotag_title' => 'Autotags',
-    'autotag_description' => '[amazon:query optional label] creates an Amazon search link. Use [amazon:asin:ASIN optional label] for a product link.',
+    'autotag_description' => '[amazonlinks:query] creates an Amazon search link. Add |label to customize the text, for example [amazonlinks:geeklog|Click here]. Use [amazonlinks:asin:ASIN|label] for a specific product.',
     'documentation_title' => 'Plugin documentation',
     'documentation_quickstart_title' => 'Quick start',
     'documentation_quickstart' => 'Configure your Amazon marketplace and affiliate tag, then create at least one rule whose keyword appears in the article title, introduction or body.',
@@ -64,7 +64,8 @@ $LANG_confignames['amazonlinks'] = array(
     'display_mode' => 'Display mode',
     'button_color' => 'Button color',
     'new_window' => 'Open links in a new window?',
-    'load_css' => 'Load the plugin stylesheet?'
+    'load_css' => 'Load the plugin stylesheet?',
+    'autotag_css' => 'Apply button styling to autotags?'
 );
 
 $LANG_configsubgroups['amazonlinks'] = array(
