@@ -12,7 +12,13 @@
 
 - Added collapsed built-in documentation to the bottom of the AmazonLinks administration page.
 
-- Replaced executable `amazonlinks_config.php` runtime configuration with Geeklog Configuration API and JSON rule storage.
+- Replaced executable `amazonlinks_config.php` runtime configuration with Geeklog Configuration API and JSON rule storage after the site completes its explicit 1.1 upgrade.
+- Added shared-files multisite upgrade safety: sites still persisted as 1.0 continue to read their own legacy `amazonlinks_config.php` through a read-only compatibility path after 1.1 files are deployed.
+- The legacy compatibility path preserves the historical affiliate tag, title, maximum links, Amazon URLs, rule order, substring matching and `{amazonlinks}` template mode until that site is upgraded.
+- Normal frontend requests never migrate, rename or rewrite the legacy configuration.
+- Rule administration is prevented from creating the new JSON rule state prematurely while a site is still in the 1.0 persisted state.
+- Made the 1.0 -> 1.1 migration retry-safe: if an upgrade attempt creates the new configuration but rule conversion fails, the legacy file remains available and the next explicit upgrade retries the migration.
+- The installed plugin version is updated to 1.1.0 only after required configuration, permissions, storage and rule migration steps succeed.
 - Added a private data directory derived from `path_data`.
 - Added an administrator rule editor protected by `amazonlinks.admin`.
 - Added CSRF protection and atomic rule writes.
@@ -32,10 +38,10 @@
 - Automatic matching now prefers the final visible `story_text_no_br` content, with a fallback to title/introduction/body variables. This improves compatibility with Eclipse and other themes that render the final article body through `story_text_no_br`.
 - Contextual matching checks the article title together with the visible article text when available.
 - Added a Geeklog 2.1.1 fallback that detects full article pages via `article.php` when `story_display_type` is unavailable; Geeklog 2.2.2 continues to use the native `n` / `y` display type.
-- Contextual blocks now use an explicit localized default title such as `Ressources recommandées sur Amazon` and display an affiliate disclosure below the links.
+- Contextual blocks now use an explicit localized default title such as `Ressources recommandées sur Amazon` and display an affiliate disclosure below the links when an affiliate tag is configured.
 - Legacy generic default titles are upgraded at render time without overwriting administrator-defined custom titles.
 - Prevented duplicate automatic/template output by making the modes mutually exclusive.
-- Simplified configuration initialization so it only creates settings on first install.
+- Simplified configuration initialization so it only creates missing settings and can safely retry an incomplete legacy migration.
 - Moved missing-setting migration logic into `plugin_upgrade_amazonlinks()`.
 - Made runtime configuration loading fail-safe during Geeklog configuration bootstrap.
 - Restricted the template hook to article templates before any AmazonLinks processing.
