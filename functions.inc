@@ -462,6 +462,30 @@ function AMAZONLINKS_buildContextualBlock($content, $storyTopics)
     return $html;
 }
 
+/**
+ * Inject the automatic block into every full-story content variable commonly
+ * used by Geeklog 2.1.1+ themes. Historical Denim-derived themes are not
+ * required to render the same variable: some use story_text_no_br while
+ * others use story_introtext. Keeping both synchronized makes AmazonLinks
+ * independent from showfirstasfeatured and from that template choice.
+ */
+function AMAZONLINKS_injectAutomaticBlock($template, $html)
+{
+    if ($html === '') {
+        return;
+    }
+
+    foreach (array('story_text_no_br', 'story_introtext') as $var) {
+        $value = (string) $template->get_var($var);
+        if ($value !== '' && strpos($value, 'amazonlinks-block') === false) {
+            $template->set_var($var, $value . $html);
+        }
+    }
+
+    /* Also expose the normal template variable for mixed/custom themes. */
+    $template->set_var('amazonlinks', $html);
+}
+
 function plugin_templateSetVars_amazonlinks($templatename, $template)
 {
     global $_AMAZONLINKS_CONF;
@@ -547,17 +571,7 @@ function plugin_templateSetVars_amazonlinks($templatename, $template)
         return;
     }
 
-    if ($visibleText !== '') {
-        if (strpos($visibleText, 'amazonlinks-block') === false) {
-            $template->set_var('story_text_no_br', $visibleText . $html);
-        }
-        return;
-    }
-
-    $visibleText = (string) $template->get_var('story_introtext');
-    if ($visibleText !== '' && strpos($visibleText, 'amazonlinks-block') === false) {
-        $template->set_var('story_introtext', $visibleText . $html);
-    }
+    AMAZONLINKS_injectAutomaticBlock($template, $html);
 }
 
 function plugin_getheadercode_amazonlinks()
