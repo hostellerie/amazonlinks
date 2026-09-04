@@ -10,7 +10,7 @@ $LANG_AMAZONLINKS = array(
     'rules_title' => 'Règles contextuelles',
     'rules_help' => 'Utilisez une recherche Amazon ou une URL HTTP/HTTPS complète. Un identifiant de sujet limite la règle à ce sujet Geeklog ; laissez vide ou utilisez "all" pour tous les sujets.',
     'data_directory' => 'Dossier de données privé',
-    'legacy_warning' => 'Un ancien fichier de configuration PHP AmazonLinks 1.0 a été détecté. La version 1.1 ne l’exécute pas. Recréez les règles utiles ci-dessous, puis archivez ou supprimez manuellement l’ancien fichier.',
+    'legacy_warning' => 'Ce site utilise encore la configuration AmazonLinks 1.0. Les fichiers 1.1 la lisent temporairement en mode de compatibilité, sans la modifier. Lancez la mise à jour du plugin sur ce site pour migrer automatiquement le tag, le titre, le nombre maximal de liens et les règles vers le nouveau stockage. Ne recréez pas les règles manuellement.',
     'invalid_token' => 'La requête n’a pas pu être validée. Rechargez la page et recommencez.',
     'saved' => 'Les règles de liens Amazon ont été enregistrées.',
     'save_failed' => 'Impossible d’enregistrer les règles. Vérifiez les droits du dossier de données et le journal d’erreurs Geeklog.',
@@ -49,7 +49,7 @@ $LANG_AMAZONLINKS = array(
     'documentation_tag' => 'Le tag configuré dans AmazonLinks est toujours utilisé. Si une URL directe contient déjà un paramètre tag, celui-ci est supprimé et remplacé par votre tag configuré.',
     'documentation_autotags_title' => 'Autotags',
     'documentation_storage_title' => 'Stockage des données',
-    'documentation_storage' => 'Les paramètres généraux utilisent la Configuration API de Geeklog. Les règles sont enregistrées en JSON dans un dossier privé dérivé de path_data ; aucun fichier PHP modifiable n’est exécuté.'
+    'documentation_storage' => 'Les paramètres généraux utilisent la Configuration API de Geeklog. Les règles sont enregistrées en JSON dans un dossier privé dérivé de path_data. Lors d’un déploiement de fichiers partagés, un site encore en version 1.0 conserve temporairement une lecture en mémoire de son ancien fichier PHP jusqu’à son upgrade explicite ; aucune migration n’est déclenchée par une visite.'
 );
 
 $LANG_configsections['amazonlinks'] = array(
