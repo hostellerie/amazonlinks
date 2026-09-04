@@ -10,7 +10,7 @@ $LANG_AMAZONLINKS = array(
     'rules_title' => 'Contextual rules',
     'rules_help' => 'Use Amazon search terms or a complete HTTP/HTTPS URL. A topic value limits a rule to that Geeklog topic ID; leave it blank or use "all" for every topic.',
     'data_directory' => 'Private data directory',
-    'legacy_warning' => 'A legacy PHP configuration file from AmazonLinks 1.0 was detected. It is not executed by version 1.1. Recreate the required rules below, then archive or remove the old file manually.',
+    'legacy_warning' => 'This site is still using its AmazonLinks 1.0 configuration. The 1.1 files temporarily read it through a read-only compatibility path without modifying it. Run the plugin upgrade on this site when ready to migrate the tag, title, maximum links and contextual rules automatically. Do not recreate the rules manually.',
     'invalid_token' => 'The request could not be validated. Please reload the page and try again.',
     'saved' => 'Amazon link rules were saved.',
     'save_failed' => 'The rules could not be saved. Check the data-directory permissions and Geeklog error log.',
@@ -49,7 +49,7 @@ $LANG_AMAZONLINKS = array(
     'documentation_tag' => 'AmazonLinks always uses the configured affiliate tag. If a direct URL already contains a tag parameter, it is removed and replaced with the configured tag.',
     'documentation_autotags_title' => 'Autotags',
     'documentation_storage_title' => 'Data storage',
-    'documentation_storage' => 'General settings use the Geeklog Configuration API. Rules are stored as JSON in a private directory derived from path_data; no mutable PHP configuration file is executed.'
+    'documentation_storage' => 'General settings use the Geeklog Configuration API and rules use private JSON storage. With shared plugin files, a site still persisted as 1.0 temporarily reads its legacy PHP configuration in memory until that site runs its explicit upgrade; normal requests never trigger the migration.'
 );
 
 $LANG_configsections['amazonlinks'] = array(
