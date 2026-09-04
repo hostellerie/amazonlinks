@@ -180,7 +180,7 @@ function AMAZONLINKS_ruleMatches($content, $keyword, $mode)
     }
 
     if ($mode === 'word') {
-        $pattern = '/(?<![\pL\pN_])' . preg_quote($keyword, '/') . '(?![\pL\pN_])/iu';
+        $pattern = '/(?<![\\pL\\pN_])' . preg_quote($keyword, '/') . '(?![\\pL\\pN_])/iu';
         return preg_match($pattern, $content) === 1;
     }
 
@@ -571,13 +571,13 @@ function plugin_autotags_amazonlinks($op, $content = '', $autotag = array())
     global $LANG_AMAZONLINKS;
 
     if ($op === 'tagname') {
-        return 'amazon';
+        return 'amazonlinks';
     }
     if ($op === 'description') {
-        return array('amazon' => $LANG_AMAZONLINKS['autotag_description']);
+        return array('amazonlinks' => $LANG_AMAZONLINKS['autotag_description']);
     }
     if ($op === 'permission' || $op === 'nopermission') {
-        return ($op === 'permission') ? array('amazon') : array();
+        return ($op === 'permission') ? array('amazonlinks') : array();
     }
     if ($op === 'closetag') {
         return array();
@@ -593,19 +593,34 @@ function plugin_autotags_amazonlinks($op, $content = '', $autotag = array())
         return $content;
     }
 
-    $url = '';
+    $target = $parm1;
     $label = $parm2;
 
-    if (stripos($parm1, 'asin:') === 0) {
-        $asin = substr($parm1, 5);
+    if (strpos($parm1, '|') !== false) {
+        list($target, $inlineLabel) = explode('|', $parm1, 2);
+        $target = trim($target);
+        $inlineLabel = trim($inlineLabel);
+        if ($inlineLabel !== '') {
+            $label = $inlineLabel;
+        }
+    }
+
+    if ($target === '') {
+        return $content;
+    }
+
+    $url = '';
+
+    if (stripos($target, 'asin:') === 0) {
+        $asin = substr($target, 5);
         $url = AMAZONLINKS_buildAsinUrl($asin);
         if ($label === '') {
             $label = 'Amazon';
         }
     } else {
-        $url = AMAZONLINKS_buildSearchUrl($parm1);
+        $url = AMAZONLINKS_buildSearchUrl($target);
         if ($label === '') {
-            $label = $parm1;
+            $label = $target;
         }
     }
 
