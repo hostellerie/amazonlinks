@@ -37,6 +37,13 @@ $LANG_AMAZONLINKS = array(
     'template_help' => 'Le mode automatique ne nécessite aucune modification du thème. Le mode template permet d’ajouter <code>{amazonlinks}</code> dans les templates d’article souhaités, généralement <code>article/storytext.thtml</code> et <code>article/featuredstorytext.thtml</code>.',
     'autotag_title' => 'Autotags',
     'autotag_description' => '[amazonlinks:recherche] crée un lien de recherche Amazon. Ajoutez |libellé pour personnaliser le texte, par exemple [amazonlinks:geeklog|Cliquez ici]. Utilisez [amazonlinks:asin:ASIN|libellé] pour un produit précis.',
+    'autotag_examples' => array(
+        '[amazonlinks:libreoffice]',
+        '[amazonlinks:geeklog|Cliquez ici]',
+        '[amazonlinks:rocket stove|Voir les livres sur les rocket stoves]',
+        '[amazonlinks:asin:B0XXXXXXXX]',
+        '[amazonlinks:asin:B0XXXXXXXX|Voir ce produit sur Amazon]'
+    ),
     'documentation_title' => 'Documentation du plugin',
     'documentation_quickstart_title' => 'Mise en route',
     'documentation_quickstart' => 'Configurez votre boutique Amazon et votre tag d’affiliation, puis créez au moins une règle dont le mot-clé est présent dans le titre, l’introduction ou le corps d’un article.',
