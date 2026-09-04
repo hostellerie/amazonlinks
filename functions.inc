@@ -395,9 +395,13 @@ function AMAZONLINKS_buildContextualBlock($content, $storyTopics)
             : 'Recommended resources on Amazon';
     }
 
-    $disclosure = isset($LANG_AMAZONLINKS['affiliate_disclosure'])
-        ? trim((string) $LANG_AMAZONLINKS['affiliate_disclosure'])
+    $affiliateTag = isset($_AMAZONLINKS_CONF['affiliate_tag'])
+        ? trim((string) $_AMAZONLINKS_CONF['affiliate_tag'])
         : '';
+    $disclosure = '';
+    if ($affiliateTag !== '' && isset($LANG_AMAZONLINKS['affiliate_disclosure'])) {
+        $disclosure = trim((string) $LANG_AMAZONLINKS['affiliate_disclosure']);
+    }
 
     $colorClass = ' amazonlinks-color-' . AMAZONLINKS_buttonColor();
 
