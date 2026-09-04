@@ -64,6 +64,30 @@ function AMAZONLINKS_debugLog($message)
     }
 }
 
+function AMAZONLINKS_isFullStoryDisplay($displayType)
+{
+    $displayType = trim((string) $displayType);
+
+    if ($displayType !== '') {
+        return $displayType === 'n';
+    }
+
+    $script = '';
+    if (!empty($_SERVER['SCRIPT_NAME'])) {
+        $script = basename((string) $_SERVER['SCRIPT_NAME']);
+    } elseif (!empty($_SERVER['PHP_SELF'])) {
+        $script = basename((string) $_SERVER['PHP_SELF']);
+    }
+
+    $isFull = ($script === 'article.php');
+    AMAZONLINKS_debugLog(
+        'Display type fallback: script=' . ($script === '' ? '(empty)' : $script)
+        . ', fullStory=' . ($isFull ? 'yes' : 'no')
+    );
+
+    return $isFull;
+}
+
 function AMAZONLINKS_marketplaces()
 {
     return array(
@@ -497,8 +521,8 @@ function plugin_templateSetVars_amazonlinks($templatename, $template)
         return;
     }
 
-    if ($displayType !== 'n') {
-        AMAZONLINKS_debugLog('Automatic mode stopped: displayType is not n.');
+    if (!AMAZONLINKS_isFullStoryDisplay($displayType)) {
+        AMAZONLINKS_debugLog('Automatic mode stopped: not a full article display.');
         return;
     }
 
