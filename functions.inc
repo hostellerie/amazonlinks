@@ -463,32 +463,53 @@ function AMAZONLINKS_buildContextualBlock($content, $storyTopics)
 }
 
 /**
- * Inject the automatic block into every full-story content variable commonly
- * used by Geeklog 2.1.1+ themes. Besides the raw story variables, Geeklog
- * 2.1.1 has already parsed story_bodyhtml before PLG_templateSetVars() runs.
- * Some historical Denim-derived themes render that parsed variable instead of
- * story_text_no_br. Keeping all three synchronized makes the automatic mode
- * independent from showfirstasfeatured and from the theme's story template.
- *
- * In automatic mode the {amazonlinks} template variable is deliberately left
- * empty. Historical themes may still contain that placeholder from AmazonLinks
- * 1.0; filling it here would render a second block in addition to the automatic
- * content injection. The placeholder is reserved for display_mode=template.
+ * Insert the automatic block into the final story template selected by Geeklog.
+ * Geeklog 2.1.1 calls PLG_templateSetVars() a second time with article,
+ * featuredarticle or archivearticle immediately before the final parse. At
+ * that point templateCode contains the actual story template chosen by
+ * showfirstasfeatured. Inserting a private placeholder directly after the
+ * content token makes automatic mode independent of which historical Denim
+ * template is in use and avoids relying on a stale {amazonlinks} placeholder.
  */
-function AMAZONLINKS_injectAutomaticBlock($template, $html)
+function AMAZONLINKS_injectAutomaticBlock($template, $templateName, $html)
 {
     if ($html === '') {
         return;
     }
 
-    foreach (array('story_text_no_br', 'story_introtext', 'story_bodyhtml') as $var) {
-        $value = (string) $template->get_var($var);
-        if ($value !== '' && strpos($value, 'amazonlinks-block') === false) {
-            $template->set_var($var, $value . $html);
+    $template->set_var('amazonlinks', '');
+    $template->set_var('amazonlinks_auto', $html);
+
+    if (!isset($template->templateCode)
+        || !is_array($template->templateCode)
+        || !isset($template->templateCode[$templateName])
+    ) {
+        return;
+    }
+
+    $code = (string) $template->templateCode[$templateName];
+    if ($code === '' || strpos($code, '{amazonlinks_auto}') !== false) {
+        return;
+    }
+
+    foreach (array('{story_text_no_br}', '{story_introtext}', '{story_bodyhtml}') as $token) {
+        $pos = strpos($code, $token);
+        if ($pos !== false) {
+            $pos += strlen($token);
+            $template->templateCode[$templateName] = substr($code, 0, $pos)
+                . '{amazonlinks_auto}' . substr($code, $pos);
+            return;
         }
     }
 
-    $template->set_var('amazonlinks', '');
+    $closing = strripos($code, '</article>');
+    if ($closing !== false) {
+        $template->templateCode[$templateName] = substr($code, 0, $closing)
+            . '{amazonlinks_auto}' . substr($code, $closing);
+        return;
+    }
+
+    $template->templateCode[$templateName] = $code . '{amazonlinks_auto}';
 }
 
 function plugin_templateSetVars_amazonlinks($templatename, $template)
@@ -565,18 +586,20 @@ function plugin_templateSetVars_amazonlinks($templatename, $template)
     }
 
     /*
-     * Geeklog 2.1.1 does not expose story_display_type. In that case the
-     * article.php request is the authoritative full-story signal. Do not fall
-     * back to a generic display_type template variable because themes or other
-     * plugins may use that name for unrelated purposes.
+     * Automatic placement is performed only on Geeklog's second story hook,
+     * where the exact final template file variable is known. This avoids
+     * depending on whether storytext or featuredstorytext is selected.
      */
-    $displayType = (string) $template->get_var('story_display_type');
+    if (!in_array($templatename, array('article', 'featuredarticle', 'archivearticle'), true)) {
+        return;
+    }
 
+    $displayType = (string) $template->get_var('story_display_type');
     if (!AMAZONLINKS_isFullStoryDisplay($displayType) || $html === '') {
         return;
     }
 
-    AMAZONLINKS_injectAutomaticBlock($template, $html);
+    AMAZONLINKS_injectAutomaticBlock($template, $templatename, $html);
 }
 
 function plugin_getheadercode_amazonlinks()
