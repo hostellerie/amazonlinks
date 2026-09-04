@@ -146,7 +146,7 @@ function AMAZONLINKS_migrateLegacyConfig($c)
     }
 
     if (!function_exists('AMAZONLINKS_saveRules') || !AMAZONLINKS_saveRules($rules)) {
-        COM_errorLog('AmazonLinks: legacy configuration migration failed while saving contextual rules.');
+        COM_errorLog('AmazonLinks: legacy configuration migration failed while saving contextual rules. Legacy data was preserved.');
         return false;
     }
 
@@ -203,7 +203,14 @@ function plugin_initconfig_amazonlinks()
             0, 0, 1, 90, true, 'amazonlinks', 0);
         $c->add('autotag_css', $_AMAZONLINKS_DEFAULT['autotag_css'], 'select',
             0, 0, 1, 100, true, 'amazonlinks', 0);
+    }
 
+    /*
+     * Retry-safe migration: if a previous upgrade attempt created the 1.1
+     * configuration group but failed before completing rule conversion, the
+     * legacy file remains and the next explicit upgrade retries the migration.
+     */
+    if (function_exists('AMAZONLINKS_isLegacyRuntime') && AMAZONLINKS_isLegacyRuntime()) {
         if (!AMAZONLINKS_migrateLegacyConfig($c)) {
             return false;
         }
