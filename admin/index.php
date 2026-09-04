@@ -171,7 +171,12 @@ $content .= '<h2>' . htmlspecialchars($LANG_AMAZONLINKS['template_title'], ENT_Q
 $content .= '<p>' . $LANG_AMAZONLINKS['template_help'] . '</p>';
 
 $content .= '<h2>' . htmlspecialchars($LANG_AMAZONLINKS['autotag_title'], ENT_QUOTES, 'UTF-8') . '</h2>';
-$content .= '<p><code>[amazon:libreoffice]</code><br><code>[amazon:asin:B0XXXXXXXX]</code></p>';
+$content .= '<p>' . htmlspecialchars($LANG_AMAZONLINKS['autotag_description'], ENT_QUOTES, 'UTF-8') . '</p>';
+$content .= '<p><code>[amazonlinks:libreoffice]</code><br>'
+    . '<code>[amazonlinks:geeklog|Cliquez ici]</code><br>'
+    . '<code>[amazonlinks:rocket stove|Voir les livres sur les rocket stoves]</code><br>'
+    . '<code>[amazonlinks:asin:B0XXXXXXXX]</code><br>'
+    . '<code>[amazonlinks:asin:B0XXXXXXXX|Voir ce produit sur Amazon]</code></p>';
 
 $content .= '<details class="amazonlinks-documentation" style="margin-top:2em">';
 $content .= '<summary style="cursor:pointer;font-weight:700">'
@@ -199,7 +204,11 @@ $content .= '<h3>' . htmlspecialchars($LANG_AMAZONLINKS['documentation_tag_title
 $content .= '<p>' . htmlspecialchars($LANG_AMAZONLINKS['documentation_tag'], ENT_QUOTES, 'UTF-8') . '</p>';
 
 $content .= '<h3>' . htmlspecialchars($LANG_AMAZONLINKS['documentation_autotags_title'], ENT_QUOTES, 'UTF-8') . '</h3>';
-$content .= '<p><code>[amazon:libreoffice]</code><br><code>[amazon:asin:B01FIX87WG]</code></p>';
+$content .= '<p>' . htmlspecialchars($LANG_AMAZONLINKS['autotag_description'], ENT_QUOTES, 'UTF-8') . '</p>';
+$content .= '<p><code>[amazonlinks:libreoffice]</code><br>'
+    . '<code>[amazonlinks:libreoffice|Voir les livres sur LibreOffice]</code><br>'
+    . '<code>[amazonlinks:asin:B01FIX87WG]</code><br>'
+    . '<code>[amazonlinks:asin:B01FIX87WG|Voir ce produit sur Amazon]</code></p>';
 
 $content .= '<h3>' . htmlspecialchars($LANG_AMAZONLINKS['documentation_storage_title'], ENT_QUOTES, 'UTF-8') . '</h3>';
 $content .= '<p>' . htmlspecialchars($LANG_AMAZONLINKS['documentation_storage'], ENT_QUOTES, 'UTF-8') . '</p>';
