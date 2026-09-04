@@ -464,10 +464,11 @@ function AMAZONLINKS_buildContextualBlock($content, $storyTopics)
 
 /**
  * Inject the automatic block into every full-story content variable commonly
- * used by Geeklog 2.1.1+ themes. Historical Denim-derived themes are not
- * required to render the same variable: some use story_text_no_br while
- * others use story_introtext. Keeping both synchronized makes AmazonLinks
- * independent from showfirstasfeatured and from that template choice.
+ * used by Geeklog 2.1.1+ themes. Besides the raw story variables, Geeklog
+ * 2.1.1 has already parsed story_bodyhtml before PLG_templateSetVars() runs.
+ * Some historical Denim-derived themes render that parsed variable instead of
+ * story_text_no_br. Keeping all three synchronized makes the automatic mode
+ * independent from showfirstasfeatured and from the theme's story template.
  *
  * In automatic mode the {amazonlinks} template variable is deliberately left
  * empty. Historical themes may still contain that placeholder from AmazonLinks
@@ -480,7 +481,7 @@ function AMAZONLINKS_injectAutomaticBlock($template, $html)
         return;
     }
 
-    foreach (array('story_text_no_br', 'story_introtext') as $var) {
+    foreach (array('story_text_no_br', 'story_introtext', 'story_bodyhtml') as $var) {
         $value = (string) $template->get_var($var);
         if ($value !== '' && strpos($value, 'amazonlinks-block') === false) {
             $template->set_var($var, $value . $html);
