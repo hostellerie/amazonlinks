@@ -21,6 +21,159 @@ $_AMAZONLINKS_DEFAULT = array(
     'autotag_css'   => 1
 );
 
+function AMAZONLINKS_migrateLegacyConfig($c)
+{
+    global $_CONF;
+
+    if (!isset($_CONF['path_data'])) {
+        return true;
+    }
+
+    $legacyFile = rtrim($_CONF['path_data'], "/\\")
+        . DIRECTORY_SEPARATOR . 'amazonlinks_config.php';
+
+    if (!file_exists($legacyFile)) {
+        return true;
+    }
+
+    /*
+     * AmazonLinks 1.0 loaded this administrator-managed PHP file on article
+     * requests. During the 1.0 -> 1.1 upgrade it is loaded once, only to
+     * migrate the trusted legacy array to Geeklog Configuration + private JSON.
+     */
+    $AMAZONLINKS_CONF = array();
+    include $legacyFile;
+
+    if (!is_array($AMAZONLINKS_CONF)) {
+        COM_errorLog('AmazonLinks: legacy configuration migration failed: invalid configuration array.');
+        return false;
+    }
+
+    if (isset($AMAZONLINKS_CONF['tag'])) {
+        $c->set('affiliate_tag', trim((string) $AMAZONLINKS_CONF['tag']), 'amazonlinks');
+    }
+
+    if (isset($AMAZONLINKS_CONF['title'])) {
+        $legacyTitle = trim((string) $AMAZONLINKS_CONF['title']);
+        if ($legacyTitle !== '') {
+            $c->set('title', $legacyTitle, 'amazonlinks');
+        }
+    }
+
+    if (isset($AMAZONLINKS_CONF['max_links'])) {
+        $maxLinks = (int) $AMAZONLINKS_CONF['max_links'];
+        if ($maxLinks < 1) {
+            $maxLinks = 1;
+        } elseif ($maxLinks > 20) {
+            $maxLinks = 20;
+        }
+        $c->set('max_links', $maxLinks, 'amazonlinks');
+    }
+
+    /*
+     * Version 1.0 rendered through {amazonlinks}. Keep template mode during
+     * migration so existing themes continue to display the block unchanged.
+     */
+    $c->set('display_mode', 'template', 'amazonlinks');
+
+    $keywords = isset($AMAZONLINKS_CONF['keywords']) && is_array($AMAZONLINKS_CONF['keywords'])
+        ? $AMAZONLINKS_CONF['keywords']
+        : array();
+
+    $rules = array();
+    $priority = count($keywords);
+    $detectedMarketplace = '';
+
+    foreach ($keywords as $keyword => $data) {
+        $keyword = trim((string) $keyword);
+        if ($keyword === '') {
+            continue;
+        }
+
+        $label = $keyword;
+        $url = '';
+
+        if (is_array($data)) {
+            if (isset($data['label']) && trim((string) $data['label']) !== '') {
+                $label = trim((string) $data['label']);
+            }
+            if (isset($data['url'])) {
+                $url = trim((string) $data['url']);
+            }
+        } else {
+            $url = trim((string) $data);
+        }
+
+        $parts = @parse_url($url);
+        if (!is_array($parts) || empty($parts['scheme']) || empty($parts['host'])) {
+            continue;
+        }
+
+        $scheme = strtolower((string) $parts['scheme']);
+        if ($scheme !== 'http' && $scheme !== 'https') {
+            continue;
+        }
+
+        if ($detectedMarketplace === '') {
+            $host = strtolower((string) $parts['host']);
+            $allowedMarketplaces = array(
+                'www.amazon.com', 'www.amazon.fr', 'www.amazon.de',
+                'www.amazon.it', 'www.amazon.es', 'www.amazon.co.uk',
+                'www.amazon.ca', 'www.amazon.com.au', 'www.amazon.co.jp',
+                'www.amazon.in'
+            );
+            if (in_array($host, $allowedMarketplaces, true)) {
+                $detectedMarketplace = $host;
+            }
+        }
+
+        $rules[] = array(
+            'keyword'  => $keyword,
+            'label'    => $label,
+            'type'     => 'url',
+            'target'   => $url,
+            'match'    => 'substring',
+            'topic'    => '',
+            'priority' => $priority,
+            'enabled'  => true
+        );
+
+        $priority--;
+    }
+
+    if ($detectedMarketplace !== '') {
+        $c->set('marketplace', $detectedMarketplace, 'amazonlinks');
+    }
+
+    if (!empty($rules)) {
+        if (!function_exists('AMAZONLINKS_saveRules') || !AMAZONLINKS_saveRules($rules)) {
+            COM_errorLog('AmazonLinks: legacy configuration migration failed while saving contextual rules.');
+            return false;
+        }
+    }
+
+    $backup = $legacyFile . '.migrated-1.0.0.bak';
+    if (file_exists($backup)) {
+        $backup .= '-' . date('Ymd-His');
+    }
+
+    if (!@rename($legacyFile, $backup)) {
+        COM_errorLog(
+            'AmazonLinks: legacy configuration migrated successfully, but the original file could not be renamed: '
+            . $legacyFile
+        );
+    } else {
+        @chmod($backup, 0640);
+    }
+
+    COM_errorLog(
+        'AmazonLinks: migrated legacy 1.0 configuration (' . count($rules)
+        . ' contextual rule(s)) to 1.1 storage.'
+    );
+
+    return true;
+}
+
 function plugin_initconfig_amazonlinks()
 {
     global $_AMAZONLINKS_DEFAULT;
@@ -52,6 +205,10 @@ function plugin_initconfig_amazonlinks()
             0, 0, 1, 90, true, 'amazonlinks', 0);
         $c->add('autotag_css', $_AMAZONLINKS_DEFAULT['autotag_css'], 'select',
             0, 0, 1, 100, true, 'amazonlinks', 0);
+
+        if (!AMAZONLINKS_migrateLegacyConfig($c)) {
+            return false;
+        }
     }
 
     return true;
