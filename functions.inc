@@ -405,14 +405,21 @@ function plugin_templateSetVars_amazonlinks($templatename, $template)
         return;
     }
 
+    $visibleText = (string) $template->get_var('story_text_no_br');
+    $title = (string) $template->get_var('story_title');
     $intro = (string) $template->get_var('story_introtext_only');
+    $body = (string) $template->get_var('story_bodytext_only');
+
     if ($intro === '') {
         $intro = (string) $template->get_var('story_introtext');
     }
 
-    $title = (string) $template->get_var('story_title');
-    $body = (string) $template->get_var('story_bodytext_only');
-    $content = trim($title . ' ' . $intro . ' ' . $body);
+    $content = trim($visibleText);
+    if ($content === '') {
+        $content = trim($title . ' ' . $intro . ' ' . $body);
+    } elseif ($title !== '') {
+        $content = trim($title . ' ' . $content);
+    }
 
     if ($content === '') {
         return;
@@ -437,8 +444,6 @@ function plugin_templateSetVars_amazonlinks($templatename, $template)
     if ($displayType !== 'n') {
         return;
     }
-
-    $visibleText = (string) $template->get_var('story_text_no_br');
 
     if ($visibleText !== '') {
         if (strpos($visibleText, 'class="amazonlinks-block"') === false) {
