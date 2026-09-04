@@ -37,6 +37,13 @@ $LANG_AMAZONLINKS = array(
     'template_help' => 'Automatic mode requires no theme change. Template mode lets you add <code>{amazonlinks}</code> to the desired story templates, normally <code>article/storytext.thtml</code> and <code>article/featuredstorytext.thtml</code>.',
     'autotag_title' => 'Autotags',
     'autotag_description' => '[amazonlinks:query] creates an Amazon search link. Add |label to customize the text, for example [amazonlinks:geeklog|Click here]. Use [amazonlinks:asin:ASIN|label] for a specific product.',
+    'autotag_examples' => array(
+        '[amazonlinks:libreoffice]',
+        '[amazonlinks:geeklog|Click here]',
+        '[amazonlinks:rocket stove|View books about rocket stoves]',
+        '[amazonlinks:asin:B0XXXXXXXX]',
+        '[amazonlinks:asin:B0XXXXXXXX|View this product on Amazon]'
+    ),
     'documentation_title' => 'Plugin documentation',
     'documentation_quickstart_title' => 'Quick start',
     'documentation_quickstart' => 'Configure your Amazon marketplace and affiliate tag, then create at least one rule whose keyword appears in the article title, introduction or body.',
