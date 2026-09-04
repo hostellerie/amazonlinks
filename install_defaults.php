@@ -17,7 +17,8 @@ $_AMAZONLINKS_DEFAULT = array(
     'display_mode'  => 'automatic',
     'button_color'  => 'theme',
     'new_window'    => 1,
-    'load_css'      => 1
+    'load_css'      => 1,
+    'autotag_css'   => 1
 );
 
 function plugin_initconfig_amazonlinks()
@@ -49,6 +50,8 @@ function plugin_initconfig_amazonlinks()
             0, 0, 1, 80, true, 'amazonlinks', 0);
         $c->add('load_css', $_AMAZONLINKS_DEFAULT['load_css'], 'select',
             0, 0, 1, 90, true, 'amazonlinks', 0);
+        $c->add('autotag_css', $_AMAZONLINKS_DEFAULT['autotag_css'], 'select',
+            0, 0, 1, 100, true, 'amazonlinks', 0);
     }
 
     return true;
