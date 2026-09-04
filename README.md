@@ -16,7 +16,7 @@ This release replaces the executable PHP configuration used by 1.0 with:
 - Configurable Amazon marketplace.
 - Whole-word, phrase and substring matching.
 - Rule priorities and optional Geeklog topic restrictions.
-- `[amazon:...]` autotag support.
+- `[amazonlinks:...]` autotag support.
 - Automatic story display mode with no theme modification required.
 - Optional `{amazonlinks}` template-variable mode for precise placement.
 - Separate frontend CSS.
@@ -116,13 +116,23 @@ If article/template caching is enabled, clear Geeklog's cache after changing the
 
 Search:
 
-    [amazon:libreoffice]
+    [amazonlinks:libreoffice]
+
+Search with a custom label:
+
+    [amazonlinks:libreoffice|Voir les livres sur LibreOffice]
 
 Product ASIN:
 
-    [amazon:asin:B0XXXXXXXX]
+    [amazonlinks:asin:B0XXXXXXXX]
 
-An optional label can be supplied as the second autotag parameter where supported by Geeklog's autotag parser.
+Product ASIN with a custom label:
+
+    [amazonlinks:asin:B0XXXXXXXX|Voir ce produit sur Amazon]
+
+The `|` separator is parsed by AmazonLinks itself, so multi-word search terms and labels are unambiguous. If Geeklog also supplies a second autotag parameter, AmazonLinks continues to accept it for compatibility, but an inline label after `|` takes precedence.
+
+The autotag name is deliberately `amazonlinks` rather than `amazon` to avoid collisions with existing or legacy manual Amazon autotags on Geeklog sites.
 
 ## Affiliate links
 
