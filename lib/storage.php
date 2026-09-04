@@ -284,10 +284,11 @@ function AMAZONLINKS_loadRules()
 function AMAZONLINKS_saveRules($rules)
 {
     /*
-     * Shared-files safety: a site still persisted as 1.0 must stay read-only
-     * until its explicit upgrade creates the 1.1 configuration group.
+     * Shared-files safety: a site persisted as 1.0 is read-only until the
+     * explicit migration routine authorizes the write. This remains true even
+     * after a failed upgrade has already created the 1.1 configuration group.
      */
-    if (AMAZONLINKS_isLegacyRuntime() && !AMAZONLINKS_hasCurrentConfig()) {
+    if (AMAZONLINKS_isLegacyRuntime() && empty($GLOBALS['_AMAZONLINKS_MIGRATING_LEGACY'])) {
         return false;
     }
 
