@@ -435,6 +435,8 @@ function AMAZONLINKS_buildContextualBlock($content, $storyTopics)
 
 function plugin_templateSetVars_amazonlinks($templatename, $template)
 {
+    global $_AMAZONLINKS_CONF;
+
     $storyTemplates = array(
         'storytext',
         'featuredstorytext',
@@ -445,6 +447,24 @@ function plugin_templateSetVars_amazonlinks($templatename, $template)
     );
 
     if (!in_array($templatename, $storyTemplates, true)) {
+        return;
+    }
+
+    /*
+     * Shared-files compatibility for sites still persisted as 1.0: reproduce
+     * the historical selection path exactly enough to avoid changing which
+     * articles receive links merely because 1.1 files were uploaded.
+     */
+    if (!empty($_AMAZONLINKS_CONF['legacy_runtime'])) {
+        $content = strtolower(strip_tags((string) $template->get_var('story_bodytext_only')));
+        if ($content === '') {
+            return;
+        }
+
+        $html = AMAZONLINKS_buildContextualBlock($content, array());
+        if ($html !== '') {
+            $template->set_var('amazonlinks', $html);
+        }
         return;
     }
 
