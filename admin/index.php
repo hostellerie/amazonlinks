@@ -16,9 +16,15 @@ global $_CONF, $LANG_AMAZONLINKS;
 
 $message = '';
 $rules = AMAZONLINKS_loadRules();
+$legacyRuntime = function_exists('AMAZONLINKS_isLegacyRuntime') && AMAZONLINKS_isLegacyRuntime();
 
 if (isset($_POST['save_rules'])) {
-    if (!SEC_checkToken()) {
+    if ($legacyRuntime) {
+        $message = COM_showMessageText(
+            $LANG_AMAZONLINKS['legacy_warning'],
+            $LANG_AMAZONLINKS['admin_title']
+        );
+    } elseif (!SEC_checkToken()) {
         $message = COM_showMessageText(
             $LANG_AMAZONLINKS['invalid_token'],
             $LANG_AMAZONLINKS['admin_title']
@@ -63,17 +69,19 @@ if (isset($_POST['save_rules'])) {
     }
 }
 
-for ($i = 0; $i < 5; $i++) {
-    $rules[] = array(
-        'keyword' => '',
-        'label' => '',
-        'type' => 'search',
-        'target' => '',
-        'match' => 'phrase',
-        'topic' => '',
-        'priority' => 0,
-        'enabled' => true
-    );
+if (!$legacyRuntime) {
+    for ($i = 0; $i < 5; $i++) {
+        $rules[] = array(
+            'keyword' => '',
+            'label' => '',
+            'type' => 'search',
+            'target' => '',
+            'match' => 'phrase',
+            'topic' => '',
+            'priority' => 0,
+            'enabled' => true
+        );
+    }
 }
 
 $token = SEC_createToken();
@@ -101,11 +109,12 @@ $content .= '<style>'
     . '.amazonlinks-rules th:nth-child(6),.amazonlinks-rules td:nth-child(6){width:12%}'
     . '.amazonlinks-rules th:nth-child(7),.amazonlinks-rules td:nth-child(7){width:10%}'
     . '.amazonlinks-rules th:nth-child(8),.amazonlinks-rules td:nth-child(8){width:10%}'
+    . '.amazonlinks-rules fieldset{border:0;margin:0;padding:0;min-width:0}'
     . '@media(max-width:900px){.amazonlinks-rules{min-width:760px;table-layout:auto}}'
     . '</style>';
 $content .= '<p>' . htmlspecialchars($LANG_AMAZONLINKS['admin_intro'], ENT_QUOTES, 'UTF-8') . '</p>';
 
-if ($legacyFile !== '' && file_exists($legacyFile)) {
+if ($legacyRuntime) {
     $content .= '<div class="alert">'
         . htmlspecialchars($LANG_AMAZONLINKS['legacy_warning'], ENT_QUOTES, 'UTF-8')
         . '<br><code>' . htmlspecialchars($legacyFile, ENT_QUOTES, 'UTF-8') . '</code></div>';
@@ -114,17 +123,22 @@ if ($legacyFile !== '' && file_exists($legacyFile)) {
 $content .= '<p><strong>' . htmlspecialchars($LANG_AMAZONLINKS['data_directory'], ENT_QUOTES, 'UTF-8')
     . ':</strong> <code>' . htmlspecialchars($dataDir, ENT_QUOTES, 'UTF-8') . '</code></p>';
 
-$content .= '<form method="post" action="'
-    . htmlspecialchars($configUrl, ENT_QUOTES, 'UTF-8') . '">'
-    . '<input type="hidden" name="conf_group" value="amazonlinks">'
-    . '<button type="submit">'
-    . htmlspecialchars($LANG_AMAZONLINKS['open_configuration'], ENT_QUOTES, 'UTF-8')
-    . '</button></form>';
+if (!$legacyRuntime) {
+    $content .= '<form method="post" action="'
+        . htmlspecialchars($configUrl, ENT_QUOTES, 'UTF-8') . '">'
+        . '<input type="hidden" name="conf_group" value="amazonlinks">'
+        . '<button type="submit">'
+        . htmlspecialchars($LANG_AMAZONLINKS['open_configuration'], ENT_QUOTES, 'UTF-8')
+        . '</button></form>';
+}
 
 $content .= '<h2>' . htmlspecialchars($LANG_AMAZONLINKS['rules_title'], ENT_QUOTES, 'UTF-8') . '</h2>';
 $content .= '<p>' . htmlspecialchars($LANG_AMAZONLINKS['rules_help'], ENT_QUOTES, 'UTF-8') . '</p>';
 
 $content .= '<form method="post" action="">';
+if ($legacyRuntime) {
+    $content .= '<fieldset disabled>';
+}
 $content .= '<div class="amazonlinks-rules-wrap"><table class="admin-list amazonlinks-rules">';
 $content .= '<thead><tr>'
     . '<th>' . htmlspecialchars($LANG_AMAZONLINKS['enabled'], ENT_QUOTES, 'UTF-8') . '</th>'
@@ -180,7 +194,11 @@ $content .= '<input type="hidden" name="' . CSRF_TOKEN . '" value="'
     . htmlspecialchars($token, ENT_QUOTES, 'UTF-8') . '">';
 $content .= '<p><button type="submit" name="save_rules" value="1">'
     . htmlspecialchars($LANG_AMAZONLINKS['save_rules'], ENT_QUOTES, 'UTF-8')
-    . '</button></p></form>';
+    . '</button></p>';
+if ($legacyRuntime) {
+    $content .= '</fieldset>';
+}
+$content .= '</form>';
 
 $content .= '<h2>' . htmlspecialchars($LANG_AMAZONLINKS['template_title'], ENT_QUOTES, 'UTF-8') . '</h2>';
 $content .= '<p>' . $LANG_AMAZONLINKS['template_help'] . '</p>';
