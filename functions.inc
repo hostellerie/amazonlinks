@@ -468,6 +468,11 @@ function AMAZONLINKS_buildContextualBlock($content, $storyTopics)
  * required to render the same variable: some use story_text_no_br while
  * others use story_introtext. Keeping both synchronized makes AmazonLinks
  * independent from showfirstasfeatured and from that template choice.
+ *
+ * In automatic mode the {amazonlinks} template variable is deliberately left
+ * empty. Historical themes may still contain that placeholder from AmazonLinks
+ * 1.0; filling it here would render a second block in addition to the automatic
+ * content injection. The placeholder is reserved for display_mode=template.
  */
 function AMAZONLINKS_injectAutomaticBlock($template, $html)
 {
@@ -482,8 +487,7 @@ function AMAZONLINKS_injectAutomaticBlock($template, $html)
         }
     }
 
-    /* Also expose the normal template variable for mixed/custom themes. */
-    $template->set_var('amazonlinks', $html);
+    $template->set_var('amazonlinks', '');
 }
 
 function plugin_templateSetVars_amazonlinks($templatename, $template)
