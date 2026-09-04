@@ -34,7 +34,8 @@ function AMAZONLINKS_loadConfig()
         'display_mode'  => 'automatic',
         'button_color'  => 'theme',
         'new_window'    => 1,
-        'load_css'      => 1
+        'load_css'      => 1,
+        'autotag_css'   => 1
     );
 
     if (!class_exists('config')) {
@@ -253,8 +254,12 @@ function AMAZONLINKS_renderLink($label, $url, $className)
         return '';
     }
 
-    $attrs = ' class="' . htmlspecialchars($className, ENT_QUOTES, 'UTF-8') . '"'
-        . ' href="' . htmlspecialchars($url, ENT_QUOTES, 'UTF-8') . '"'
+    $attrs = '';
+    $className = trim((string) $className);
+    if ($className !== '') {
+        $attrs .= ' class="' . htmlspecialchars($className, ENT_QUOTES, 'UTF-8') . '"';
+    }
+    $attrs .= ' href="' . htmlspecialchars($url, ENT_QUOTES, 'UTF-8') . '"'
         . ' rel="nofollow sponsored noopener"';
 
     if (!empty($_AMAZONLINKS_CONF['new_window'])) {
@@ -528,6 +533,10 @@ function plugin_upgrade_amazonlinks()
         $c->add('button_color', 'theme', 'select', 0, 0, 4, 70, true, 'amazonlinks', 0);
     }
 
+    if (DB_count($_TABLES['conf_values'], array('name', 'group_name'), array('autotag_css', 'amazonlinks')) == 0) {
+        $c->add('autotag_css', 1, 'select', 0, 0, 1, 100, true, 'amazonlinks', 0);
+    }
+
     if (!AMAZONLINKS_installConfigPermission()) {
         return false;
     }
@@ -566,9 +575,42 @@ function plugin_autouninstall_amazonlinks()
     );
 }
 
+function AMAZONLINKS_parseAutotagPayload($autotag)
+{
+    $payload = '';
+
+    if (isset($autotag['tagstr'])) {
+        $tagstr = trim((string) $autotag['tagstr']);
+        $prefix = '[amazonlinks:';
+        if (stripos($tagstr, $prefix) === 0 && substr($tagstr, -1) === ']') {
+            $payload = substr($tagstr, strlen($prefix), -1);
+        }
+    }
+
+    if ($payload === '') {
+        $parm1 = isset($autotag['parm1']) ? trim((string) $autotag['parm1']) : '';
+        $parm2 = isset($autotag['parm2']) ? trim((string) $autotag['parm2']) : '';
+        $payload = $parm1;
+        if ($parm2 !== '') {
+            $payload .= '|' . $parm2;
+        }
+    }
+
+    $target = trim($payload);
+    $label = '';
+
+    if (strpos($payload, '|') !== false) {
+        list($target, $label) = explode('|', $payload, 2);
+        $target = trim($target);
+        $label = trim($label);
+    }
+
+    return array($target, $label);
+}
+
 function plugin_autotags_amazonlinks($op, $content = '', $autotag = array())
 {
-    global $LANG_AMAZONLINKS;
+    global $LANG_AMAZONLINKS, $_AMAZONLINKS_CONF;
 
     if ($op === 'tagname') {
         return 'amazonlinks';
@@ -586,24 +628,7 @@ function plugin_autotags_amazonlinks($op, $content = '', $autotag = array())
         return $content;
     }
 
-    $parm1 = isset($autotag['parm1']) ? trim((string) $autotag['parm1']) : '';
-    $parm2 = isset($autotag['parm2']) ? trim((string) $autotag['parm2']) : '';
-
-    if ($parm1 === '') {
-        return $content;
-    }
-
-    $target = $parm1;
-    $label = $parm2;
-
-    if (strpos($parm1, '|') !== false) {
-        list($target, $inlineLabel) = explode('|', $parm1, 2);
-        $target = trim($target);
-        $inlineLabel = trim($inlineLabel);
-        if ($inlineLabel !== '') {
-            $label = $inlineLabel;
-        }
-    }
+    list($target, $label) = AMAZONLINKS_parseAutotagPayload($autotag);
 
     if ($target === '') {
         return $content;
@@ -628,6 +653,7 @@ function plugin_autotags_amazonlinks($op, $content = '', $autotag = array())
         return $content;
     }
 
-    $link = AMAZONLINKS_renderLink($label, $url, 'amazonlinks-autotag');
+    $className = !empty($_AMAZONLINKS_CONF['autotag_css']) ? 'amazonlinks-autotag' : '';
+    $link = AMAZONLINKS_renderLink($label, $url, $className);
     return str_replace($autotag['tagstr'], $link, $content);
 }
