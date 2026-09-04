@@ -71,10 +71,11 @@ function AMAZONLINKS_migrateLegacyConfig($c)
     }
 
     /*
-     * Version 1.0 rendered through {amazonlinks}. Keep template mode during
-     * migration so existing themes continue to display the block unchanged.
+     * Once the site has explicitly completed its 1.0 -> 1.1 upgrade, use the
+     * native automatic renderer. Legacy template mode is reserved for the
+     * read-only shared-files compatibility path before that site's upgrade.
      */
-    $c->set('display_mode', 'template', 'amazonlinks');
+    $c->set('display_mode', 'automatic', 'amazonlinks');
 
     $keywords = isset($AMAZONLINKS_CONF['keywords']) && is_array($AMAZONLINKS_CONF['keywords'])
         ? $AMAZONLINKS_CONF['keywords']
