@@ -31,7 +31,7 @@ $LANG_AMAZONLINKS = array(
     'template_title' => 'Intégration au thème',
     'template_help' => 'Le mode automatique ne nécessite aucune modification du thème. Le mode template permet d’ajouter <code>{amazonlinks}</code> dans les templates d’article souhaités, généralement <code>article/storytext.thtml</code> et <code>article/featuredstorytext.thtml</code>.',
     'autotag_title' => 'Autotags',
-    'autotag_description' => '[amazon:recherche libellé facultatif] crée un lien de recherche Amazon. Utilisez [amazon:asin:ASIN libellé facultatif] pour un produit.',
+    'autotag_description' => '[amazonlinks:recherche] crée un lien de recherche Amazon. Ajoutez |libellé pour personnaliser le texte, par exemple [amazonlinks:geeklog|Cliquez ici]. Utilisez [amazonlinks:asin:ASIN|libellé] pour un produit précis.',
     'documentation_title' => 'Documentation du plugin',
     'documentation_quickstart_title' => 'Mise en route',
     'documentation_quickstart' => 'Configurez votre boutique Amazon et votre tag d’affiliation, puis créez au moins une règle dont le mot-clé est présent dans le titre, l’introduction ou le corps d’un article.',
@@ -64,7 +64,8 @@ $LANG_confignames['amazonlinks'] = array(
     'display_mode' => 'Mode d’affichage',
     'button_color' => 'Couleur des boutons',
     'new_window' => 'Ouvrir les liens dans une nouvelle fenêtre ?',
-    'load_css' => 'Charger la feuille de style du plugin ?'
+    'load_css' => 'Charger la feuille de style du plugin ?',
+    'autotag_css' => 'Appliquer le style bouton aux autotags ?'
 );
 
 $LANG_configsubgroups['amazonlinks'] = array(
