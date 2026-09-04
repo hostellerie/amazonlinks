@@ -19,7 +19,9 @@
 - Added URL scheme validation and safer affiliate-tag handling.
 - Added marketplace configuration.
 - Added priority, match mode, topic restriction and enabled state for rules.
-- Added `[amazon:...]` autotags, including ASIN links.
+- Added `[amazonlinks:...]` autotags, including ASIN links.
+- Added explicit `|` separator support for custom autotag labels, e.g. `[amazonlinks:libreoffice|Voir les livres sur LibreOffice]`.
+- Renamed the autotag from `[amazon:...]` to `[amazonlinks:...]` to avoid collisions with existing or legacy Amazon autotags.
 - Added automatic story display mode using Geeklog's native template-variable hook.
 - Added optional `{amazonlinks}` template mode and disabled mode.
 - Fixed automatic mode so it no longer relies on the unused item-display path in article rendering.
