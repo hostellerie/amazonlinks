@@ -15,6 +15,13 @@
     gap: 0.6rem;
 }
 
+.amazonlinks-disclosure {
+    margin-top: 0.75rem;
+    font-size: 0.875em;
+    line-height: 1.4;
+    opacity: 0.75;
+}
+
 .amazonlinks-link,
 .amazonlinks-autotag {
     display: inline-block;
