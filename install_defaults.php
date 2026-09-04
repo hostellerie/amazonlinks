@@ -145,7 +145,11 @@ function AMAZONLINKS_migrateLegacyConfig($c)
         $c->set('marketplace', $detectedMarketplace, 'amazonlinks');
     }
 
-    if (!function_exists('AMAZONLINKS_saveRules') || !AMAZONLINKS_saveRules($rules)) {
+    $GLOBALS['_AMAZONLINKS_MIGRATING_LEGACY'] = true;
+    $saved = function_exists('AMAZONLINKS_saveRules') && AMAZONLINKS_saveRules($rules);
+    unset($GLOBALS['_AMAZONLINKS_MIGRATING_LEGACY']);
+
+    if (!$saved) {
         COM_errorLog('AmazonLinks: legacy configuration migration failed while saving contextual rules. Legacy data was preserved.');
         return false;
     }
