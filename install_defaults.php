@@ -145,11 +145,9 @@ function AMAZONLINKS_migrateLegacyConfig($c)
         $c->set('marketplace', $detectedMarketplace, 'amazonlinks');
     }
 
-    if (!empty($rules)) {
-        if (!function_exists('AMAZONLINKS_saveRules') || !AMAZONLINKS_saveRules($rules)) {
-            COM_errorLog('AmazonLinks: legacy configuration migration failed while saving contextual rules.');
-            return false;
-        }
+    if (!function_exists('AMAZONLINKS_saveRules') || !AMAZONLINKS_saveRules($rules)) {
+        COM_errorLog('AmazonLinks: legacy configuration migration failed while saving contextual rules.');
+        return false;
     }
 
     $backup = $legacyFile . '.migrated-1.0.0.bak';
