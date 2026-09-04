@@ -29,8 +29,8 @@
 - Added optional `{amazonlinks}` template mode and disabled mode.
 - Fixed automatic mode so it no longer relies on the unused item-display path in article rendering.
 - Automatic blocks are appended only on full article views, not topic/index summaries.
-- Contextual matching now checks both article introduction and body text.
-- Contextual matching now checks the article title in addition to the introduction and body text.
+- Automatic matching now prefers the final visible `story_text_no_br` content, with a fallback to title/introduction/body variables. This improves compatibility with Eclipse and other themes that render the final article body through `story_text_no_br`.
+- Contextual matching checks the article title together with the visible article text when available.
 - Prevented duplicate automatic/template output by making the modes mutually exclusive.
 - Simplified configuration initialization so it only creates settings on first install.
 - Moved missing-setting migration logic into `plugin_upgrade_amazonlinks()`.
