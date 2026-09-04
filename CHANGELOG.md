@@ -20,8 +20,11 @@
 - Added marketplace configuration.
 - Added priority, match mode, topic restriction and enabled state for rules.
 - Added `[amazonlinks:...]` autotags, including ASIN links.
-- Added explicit `|` separator support for custom autotag labels, e.g. `[amazonlinks:libreoffice|Voir les livres sur LibreOffice]`.
 - Renamed the autotag from `[amazon:...]` to `[amazonlinks:...]` to avoid collisions with existing or legacy Amazon autotags.
+- Fixed autotag parsing so multi-word searches and custom labels are read from the original `tagstr` instead of being truncated by Geeklog's space-based `parm1` / `parm2` parsing.
+- Added explicit `|` separator support for custom autotag labels, e.g. `[amazonlinks:geeklog|Cliquez ici]` and `[amazonlinks:rocket stove|Voir les livres sur les rocket stoves]`.
+- Added the `autotag_css` configuration option. When disabled, autotags render as normal unclassed links instead of AmazonLinks buttons, while contextual block styling remains unchanged.
+- Updated French and English autotag help and administrator examples to document the `|` separator and the `amazonlinks` tag name.
 - Added automatic story display mode using Geeklog's native template-variable hook.
 - Added optional `{amazonlinks}` template mode and disabled mode.
 - Fixed automatic mode so it no longer relies on the unused item-display path in article rendering.
