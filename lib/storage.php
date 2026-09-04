@@ -299,7 +299,12 @@ function AMAZONLINKS_saveRules($rules)
         return false;
     }
 
-    return AMAZONLINKS_writeJsonAtomically(AMAZONLINKS_rulesFile(), $json . "\n");
+    $saved = AMAZONLINKS_writeJsonAtomically(AMAZONLINKS_rulesFile(), $json . "\n");
+    if ($saved && function_exists('AMAZONLINKS_clearArticleCache')) {
+        AMAZONLINKS_clearArticleCache();
+    }
+
+    return $saved;
 }
 
 function AMAZONLINKS_normalizeRules($rules)
