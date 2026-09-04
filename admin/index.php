@@ -227,11 +227,18 @@ $content .= '<h2>' . htmlspecialchars($LANG_AMAZONLINKS['template_title'], ENT_Q
 $content .= '<p>' . $LANG_AMAZONLINKS['template_help'] . '</p>';
 $content .= '<h2>' . htmlspecialchars($LANG_AMAZONLINKS['autotag_title'], ENT_QUOTES, 'UTF-8') . '</h2>';
 $content .= '<p>' . htmlspecialchars($LANG_AMAZONLINKS['autotag_description'], ENT_QUOTES, 'UTF-8') . '</p>';
-$content .= '<p><code>[amazonlinks:libreoffice]</code><br>'
-    . '<code>[amazonlinks:geeklog|Cliquez ici]</code><br>'
-    . '<code>[amazonlinks:rocket stove|Voir les livres sur les rocket stoves]</code><br>'
-    . '<code>[amazonlinks:asin:B0XXXXXXXX]</code><br>'
-    . '<code>[amazonlinks:asin:B0XXXXXXXX|Voir ce produit sur Amazon]</code></p>';
+
+if (isset($LANG_AMAZONLINKS['autotag_examples']) && is_array($LANG_AMAZONLINKS['autotag_examples'])) {
+    $content .= '<p>';
+    $exampleCount = count($LANG_AMAZONLINKS['autotag_examples']);
+    foreach ($LANG_AMAZONLINKS['autotag_examples'] as $exampleIndex => $example) {
+        $content .= '<code>' . htmlspecialchars($example, ENT_QUOTES, 'UTF-8') . '</code>';
+        if ($exampleIndex < ($exampleCount - 1)) {
+            $content .= '<br>';
+        }
+    }
+    $content .= '</p>';
+}
 
 $content .= '<details class="amazonlinks-documentation" style="margin-top:2em">';
 $content .= '<summary style="cursor:pointer;font-weight:700">'
